@@ -14,4 +14,9 @@ class GithubApi extends AbstractApi
         return $this->get('/orgs/'. $org .'/repos');
 
     }
+
+    protected function getAccessToken(): string
+    {
+        return '';
+    }
 }

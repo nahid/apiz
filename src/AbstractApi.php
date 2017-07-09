@@ -48,6 +48,9 @@ abstract class AbstractApi
             return $content;
         }
     }
+
+    abstract protected function getAccessToken():string;
+
     public function formParams($params = array())
     {
         if (is_array($params)) {
@@ -104,10 +107,5 @@ abstract class AbstractApi
         }
     }
 
-
-    protected function getAccessToken()
-    {
-        return '';
-    }
 
 }
