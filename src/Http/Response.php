@@ -43,4 +43,5 @@ class Response
     {
         return $this->data;
     }
+
 }

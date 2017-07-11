@@ -6,7 +6,7 @@ use ApiManager\App\GithubApi;
 
 $api = new GithubApi();
 
-$res = $api->getOrgRepos('codesum');
+$res = $api->me();
 
-echo '<pre><code>';
-var_dump($res->getData());
+
+dump($res);

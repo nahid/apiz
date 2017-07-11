@@ -7,15 +7,15 @@ use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Psr7\Request as Psr7Request;
 use ApiManager\Http\Request;
 use ApiManager\Http\Response;
 
 
 abstract class AbstractApi
 {
-    protected $baseUrl = false;
+    protected $baseUrl = '';
     protected $prefix = '';
-    protected $url = '';
     protected $request = [];
     protected $defaultHeaders = [];
     protected $client;
@@ -31,19 +31,21 @@ abstract class AbstractApi
     ];
     function __construct()
     {
-        if (!$this->baseUrl) {
-            $this->baseUrl = $this->setBaseUrl();
-        }
+        $this->baseUrl = $this->setBaseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
+
+        $this->parameters['multipart'] = [];
 
         $this->client = new Request($this->baseUrl);
     }
 
 
-    protected function setBaseUrl()
+    abstract protected function setBaseUrl():string;
+
+    protected function getAccessToken():string
     {
-        return false;
+        return '';
     }
 
     protected function setDefaultHeaders():array
@@ -58,13 +60,10 @@ abstract class AbstractApi
             $parameters[] = $method;
             $parameters[] = $params[0];
             $content = call_user_func_array([$this, 'makeMethodRequest'], $parameters);
-
-
             return $content;
         }
     }
 
-    abstract protected function getAccessToken():string;
 
     public function formParams($params = array())
     {
@@ -82,6 +81,8 @@ abstract class AbstractApi
         }
         return false;
     }
+
+
     public function query($params = array())
     {
         if (is_array($params)) {
@@ -90,9 +91,73 @@ abstract class AbstractApi
         }
         return false;
     }
+
+    public function allowRedirects($params = [])
+    {
+        if (is_array($params)) {
+            $this->parameters['allow_redirects'] = $params;
+            return $this;
+        }
+        return false;
+    }
+
+    public function auth($username, $password, $opts = [])
+    {
+        $params = [$username, $password];
+
+        if (is_array($opts)) {
+            $params = array_merge($params, $opts);
+        }
+
+        $this->parameters['auth'] = $params;
+        return $this;
+    }
+
+    public function body($contents)
+    {
+        $this->parameters['body'] = $contents;
+        return $this;
+    }
+
+    public function json($params = [])
+    {
+        if (is_array($params)) {
+            $this->parameters['json'] = $params;
+            return $this;
+        }
+        return false;
+    }
+
+    public function upload($name, $file, $headers = [])
+    {
+        $params = [];
+
+        if (file_exists($file)) {
+            $fileInfo = pathinfo($file);
+            $contents = fopen($file, 'r');
+
+            $params = [
+                'name'  => $name,
+                'contents'  => $contents,
+                'filename'  => $fileInfo['basename'],
+                'headers'   => $headers
+            ];
+         }
+
+        $this->parameters['multipart'][] = $params;
+        return $this;
+    }
+
+    public function options($options = [])
+    {
+        $this->parameters = $options;
+        return $this;
+    }
+
+
     public function makeMethodRequest($method, $uri)
     {
-        $uri = $this->trimString($this->prefix) . '/' . $this->trimString($uri);
+        $uri = trim($this->prefix, '/') . '/' . trim($uri, '/');
 
         $this->parameters['timeout'] = 60;
 
@@ -105,13 +170,16 @@ abstract class AbstractApi
         }
 
         $this->request = [
-            'url' => $this->trimString($this->baseUrl) . '/' . $uri,
+            'url' => trim($this->baseUrl, '/') . '/' . $uri,
             'method' => $method,
             'parameters' => $this->parameters
         ];
 
+        $request = new Psr7Request($method, $uri);
+        $request->info = $this->request;
+
         try {
-            return $response = new Response($this->client->http->request($method, $uri, $this->parameters), $this->request);
+            $response = $this->client->http->send($request, $this->parameters);
         } catch (RequestException $e) {
             $response = $e->getResponse();
         } catch (ClientException $e) {
@@ -122,7 +190,7 @@ abstract class AbstractApi
             $response = $e->getResponse();
         }
 
-        return new Response($response, $this->request);
+        return new Response($response, $request);
     }
 
 
@@ -130,18 +198,5 @@ abstract class AbstractApi
     {
         return $this->baseUrl;
     }
-
-    public function getRequestData()
-    {
-        return (object) $this->request;
-    }
-
-
-    protected function trimString($string)
-    {
-        return rtrim(ltrim($string, '/'), '/');
-    }
-
-
 
 }

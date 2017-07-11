@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "858ac497af4fa19be7634394bf3b4a50",
+    "content-hash": "837fb5f95cf5b428f139e6e6eb514ffe",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -708,7 +708,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-06-26T06:37:27+00:00"
+            "time": "2017-06-26 06:37:27"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1090,17 +1090,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/comparator.git",
-                "reference": "be09eeb0229d6ad4a1e80d2a8473dbe14b0db914"
+                "reference": "875bd7cdcb5f49e9bcea732538767937abbed51d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/be09eeb0229d6ad4a1e80d2a8473dbe14b0db914",
-                "reference": "be09eeb0229d6ad4a1e80d2a8473dbe14b0db914",
+                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/875bd7cdcb5f49e9bcea732538767937abbed51d",
+                "reference": "875bd7cdcb5f49e9bcea732538767937abbed51d",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.0",
-                "sebastian/diff": "^1.2 || ^2.0",
+                "sebastian/diff": "^2.0",
                 "sebastian/exporter": "^3.0"
             },
             "require-dev": {
@@ -1146,7 +1146,7 @@
                 "compare",
                 "equality"
             ],
-            "time": "2017-05-19 04:08:27"
+            "time": "2017-07-11T16:29:53+00:00"
         },
         {
             "name": "sebastian/diff",
@@ -1154,19 +1154,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/diff.git",
-                "reference": "2994073dc733d81c4f54d5291ac3d867402dddee"
+                "reference": "c341c98ce083db77f896a0aa64f5ee7652915970"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/2994073dc733d81c4f54d5291ac3d867402dddee",
-                "reference": "2994073dc733d81c4f54d5291ac3d867402dddee",
+                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/c341c98ce083db77f896a0aa64f5ee7652915970",
+                "reference": "c341c98ce083db77f896a0aa64f5ee7652915970",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^6.1"
+                "phpunit/phpunit": "^6.2"
             },
             "type": "library",
             "extra": {
@@ -1198,7 +1198,7 @@
             "keywords": [
                 "diff"
             ],
-            "time": "2017-06-25 08:47:13"
+            "time": "2017-07-11T12:39:25+00:00"
         },
         {
             "name": "sebastian/environment",
@@ -1599,6 +1599,132 @@
             "time": "2016-10-03 07:35:21"
         },
         {
+            "name": "symfony/polyfill-mbstring",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-mbstring.git",
+                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
+                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.5-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                },
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "time": "2017-06-14T15:44:48+00:00"
+        },
+        {
+            "name": "symfony/var-dumper",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/var-dumper.git",
+                "reference": "8ce9361b310379ceb73f481cc2a1e253d57645d0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/8ce9361b310379ceb73f481cc2a1e253d57645d0",
+                "reference": "8ce9361b310379ceb73f481cc2a1e253d57645d0",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1.3",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0"
+            },
+            "require-dev": {
+                "ext-iconv": "*",
+                "twig/twig": "~1.34|~2.4"
+            },
+            "suggest": {
+                "ext-iconv": "To convert non-UTF-8 strings to UTF-8 (or symfony/polyfill-iconv in case ext-iconv cannot be used)."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "Resources/functions/dump.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Component\\VarDumper\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony mechanism for exploring and dumping PHP variables",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "debug",
+                "dump"
+            ],
+            "time": "2017-07-11T13:49:01+00:00"
+        },
+        {
             "name": "theseer/tokenizer",
             "version": "1.1.0",
             "source": {
@@ -1691,7 +1817,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "symfony/var-dumper": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
