@@ -13,13 +13,13 @@ use ApiManager\Http\Response;
 
 abstract class AbstractApi
 {
-    protected $baseUrl = '';
+    protected $baseUrl = false;
+    protected $prefix = '';
+    protected $url = '';
+    protected $request = [];
+    protected $defaultHeaders = [];
     protected $client;
     protected $parameters= [];
-    protected $clientId;
-    protected $clientSecret;
-    protected $redirectUri;
-    protected $scopes = [];
     private $requestMethods = [
         'GET',
         'POST',
@@ -31,8 +31,26 @@ abstract class AbstractApi
     ];
     function __construct()
     {
+        if (!$this->baseUrl) {
+            $this->baseUrl = $this->setBaseUrl();
+        }
+
+        $this->defaultHeaders = $this->setDefaultHeaders();
+
         $this->client = new Request($this->baseUrl);
     }
+
+
+    protected function setBaseUrl()
+    {
+        return false;
+    }
+
+    protected function setDefaultHeaders():array
+    {
+        return [];
+    }
+
     public function __call($func, $params)
     {
         $method = strtoupper($func);
@@ -41,9 +59,6 @@ abstract class AbstractApi
             $parameters[] = $params[0];
             $content = call_user_func_array([$this, 'makeMethodRequest'], $parameters);
 
-            if ($content->getStatusCode() == 200 && isset($content->data)) {
-                $this->data = $content->data;
-            }
 
             return $content;
         }
@@ -77,35 +92,56 @@ abstract class AbstractApi
     }
     public function makeMethodRequest($method, $uri)
     {
+        $uri = $this->trimString($this->prefix) . '/' . $this->trimString($uri);
+
         $this->parameters['timeout'] = 60;
-        $defaultHeaders = [
-            'User-Agent'=>$_SERVER['HTTP_USER_AGENT']
+
+
+
+        if (isset($this->parameters['headers'])) {
+            $this->parameters['headers'] = array_merge($this->defaultHeaders , $this->parameters['headers']);
+        } else {
+            $this->parameters['headers'] = $this->defaultHeaders;
+        }
+
+        $this->request = [
+            'url' => $this->trimString($this->baseUrl) . '/' . $uri,
+            'method' => $method,
+            'parameters' => $this->parameters
         ];
 
-        if ($this->getAccessToken() !== false) {
-            array_push($defaultHeaders, ['Authorization'=> 'Bearer ' .  $this->getAccessToken()]);
-        }
-
-        if ($method == 'GET') {
-            if (isset($this->parameters['headers'])) {
-                $this->parameters['headers'] = array_merge($defaultHeaders , $this->parameters['headers']);
-            } else {
-                $this->parameters['headers'] = $defaultHeaders;
-            }
-
-        }
         try {
-            return $response = new Response($this->client->http->request($method, $uri, $this->parameters));
+            return $response = new Response($this->client->http->request($method, $uri, $this->parameters), $this->request);
         } catch (RequestException $e) {
-            return $e->getResponse();
+            $response = $e->getResponse();
         } catch (ClientException $e) {
-            return $e->getResponse();
+            $response = $e->getResponse();
         } catch (BadResponseException $e) {
-            return $e->getResponse();
+            $response = $e->getResponse();
         } catch (ServerException $e) {
-            return $e->getResponse();
+            $response = $e->getResponse();
         }
+
+        return new Response($response, $this->request);
     }
+
+
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
+
+    public function getRequestData()
+    {
+        return (object) $this->request;
+    }
+
+
+    protected function trimString($string)
+    {
+        return rtrim(ltrim($string, '/'), '/');
+    }
+
 
 
 }
