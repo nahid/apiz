@@ -2,7 +2,6 @@
 
 namespace ApiManager;
 
-
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -29,6 +28,8 @@ abstract class AbstractApi
         'OPTIONS',
         'PATCH'
     ];
+
+
     function __construct()
     {
         $this->baseUrl = $this->setBaseUrl();
@@ -160,8 +161,6 @@ abstract class AbstractApi
         $uri = trim($this->prefix, '/') . '/' . trim($uri, '/');
 
         $this->parameters['timeout'] = 60;
-
-
 
         if (isset($this->parameters['headers'])) {
             $this->parameters['headers'] = array_merge($this->defaultHeaders , $this->parameters['headers']);
