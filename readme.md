@@ -31,7 +31,7 @@ use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
-    protected function setBaseUrl(): string
+    protected function setBaseUrl()
     {
         return 'https://reqres.in';
     }
@@ -51,7 +51,7 @@ class ReqResApiService extends AbstractApi
 {
     protected $prefix = 'api';
 
-    protected function setBaseUrl(): string
+    protected function setBaseUrl()
     {
         return 'https://reqres.in';
     }
@@ -69,7 +69,7 @@ class ReqResApiService extends AbstractApi
 {
     protected $prefix = 'api';
 
-    protected function setBaseUrl(): string
+    protected function setBaseUrl()
     {
         return 'https://reqres.in';
     }

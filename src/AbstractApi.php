@@ -42,14 +42,14 @@ abstract class AbstractApi
     }
 
 
-    abstract protected function setBaseUrl():string;
+    abstract protected function setBaseUrl();
 
-    protected function getAccessToken():string
+    protected function getAccessToken()
     {
         return '';
     }
 
-    protected function setDefaultHeaders():array
+    protected function setDefaultHeaders()
     {
         return [];
     }
