@@ -162,14 +162,14 @@ abstract class AbstractApi
         return $this;
     }
 
-    public function options($options = [])
+    public function params($options = [])
     {
         $this->parameters = $options;
         return $this;
     }
 
 
-    public function makeMethodRequest($method, $uri)
+    protected function makeMethodRequest($method, $uri)
     {
         $uri = trim($this->prefix, '/') . '/' . trim($uri, '/');
 

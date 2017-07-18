@@ -95,3 +95,40 @@ We use GuzzleHttp for this package. So you can easily use all HTTP verbs
 
 ![Response](http://imgur.com/IgI0vKb.png?1 "Response")
 
+## Post Request with Form Params
+
+
+```php
+public function createUser(array $data)
+{
+    $user = $this->formParams($data)
+            ->post('/create');
+
+    if ($user->getStatusCode() == 201) {
+        return $user;
+    }
+
+    return false;
+}
+```
+
+## List of Parameters Options
+
+- `formParams(array $params)`
+- `headers(array $params)`
+- `query(array $params)`
+- `allowRedirects(array $params)`
+- `auth(string $username, string $password [, array $options])`
+- `body(string $contents)`
+- `json(array $params)`
+- `file(string $name, string $file_path, string $filename [, array $headers])`
+- `params(array $params)`
+
+## List of HTTP verbs
+
+- `get(string $uri)`
+- `post(string $uri)`
+- `put(string $uri)`
+- `delete(string $uri)`
+- `head(string $uri)`
+- `options(string $uri)`
