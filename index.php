@@ -2,7 +2,7 @@
 
 require 'vendor/autoload.php';
 
-use ApiManager\App\ReqResApiService;
+use Apiz\App\ReqResApiService;
 
 $api = new ReqResApiService();
 
