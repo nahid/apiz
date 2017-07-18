@@ -88,8 +88,8 @@ class ReqResApiService extends AbstractApi
 ```
 
 We use GuzzleHttp for this package. So you can easily use all HTTP verbs
- from as a method from PHP magic method. Its totally hassle free. with our all response we return three object `response`, `request` and `contents`.
- You can access all Guzzle response method from this response. We are using magic method to access it.
+ as a magic method. Its totally hassle free. with our all response we return three objects `response`, `request` and `contents`.
+ You can access all Guzzle response method from this response. We are using magic method to access it from response.
 
 #### Output
 
@@ -112,7 +112,7 @@ public function createUser(array $data)
 }
 ```
 
-## List of Parameters Options
+## List of Parameter Options
 
 - `formParams(array $params)`
 - `headers(array $params)`
