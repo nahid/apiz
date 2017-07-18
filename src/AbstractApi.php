@@ -36,7 +36,7 @@ abstract class AbstractApi
 
         $this->defaultHeaders = $this->setDefaultHeaders();
 
-        $this->parameters['multipart'] = [];
+        //$this->parameters['multipart'] = [];
 
         $this->client = new Request($this->baseUrl);
     }
@@ -129,21 +129,34 @@ abstract class AbstractApi
         return false;
     }
 
-    public function upload($name, $file, $headers = [])
+    public function file($name, $file, $filename, $headers = [])
     {
         $params = [];
 
         if (file_exists($file)) {
-            $fileInfo = pathinfo($file);
             $contents = fopen($file, 'r');
 
             $params = [
                 'name'  => $name,
                 'contents'  => $contents,
-                'filename'  => $fileInfo['basename'],
+                'filename'  => $filename,
                 'headers'   => $headers
             ];
          }
+
+        $this->parameters['multipart'][] = $params;
+        return $this;
+    }
+
+    public function attach($name, $contents, $filename, $headers = [])
+    {
+        $params = [
+            'name'  => $name,
+            'contents'  => $contents,
+            'filename'  => $filename,
+            'headers'   => $headers
+        ];
+
 
         $this->parameters['multipart'][] = $params;
         return $this;

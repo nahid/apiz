@@ -7,13 +7,13 @@ class Response
     protected $response;
     protected $request;
 
-    public $data = [];
+    public $contents = [];
 
     function __construct($response, $request)
     {
         $this->request = (object) $request;
         $this->response = $response;
-        $this->data = $this->fetchDataFromJson();
+        $this->contents = $this->fetchDataFromJson();
     }
 
     function __call($method, $args)
@@ -30,9 +30,9 @@ class Response
         $contentType = $header[0];
         if ($contentType == 'application/json') {
             $contents = $this->response->getBody()->getContents();
-            $data = json_decode($contents);
+            $contents = json_decode($contents);
             if (json_last_error() == JSON_ERROR_NONE) {
-                return $data;
+                return $contents;
             }
             return $contents;
         }
@@ -41,7 +41,7 @@ class Response
 
     public function getData()
     {
-        return $this->data;
+        return $this->contents;
     }
 
 }
