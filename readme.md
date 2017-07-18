@@ -9,7 +9,7 @@ APIZ is a PHP API Client Development Kit. You can easily handle all kind of JSON
 ## Installations
 
 ```shell
-composer require nahid/api-manager
+composer require nahid/apiz
 ```
 
 ## Configurations
@@ -22,12 +22,12 @@ Lets make a api service service for https://reqres.in.
 
 Suppose you have to make several api service for your package. Your service directory is
 `app/Services`. Now we are develop a service for https://reqres.in and make a class file `ReqResApiService.php`
-which is extend by `\ApiManager\AbstractApi` class.
+which is extend by `\Apiz\AbstractApi` class.
 
 ```php
 namespace App\Services;
 
-use ApiManager\AbstractApi;
+use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
@@ -45,7 +45,7 @@ To get API response from this url they've a prefix 'api' so first we set it with
 ```php
 namespace App\Services;
 
-use ApiManager\AbstractApi;
+use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
@@ -63,7 +63,7 @@ Now we make a method for get all users info
 ```php
 namespace App\Services;
 
-use ApiManager\AbstractApi;
+use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
