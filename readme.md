@@ -1,6 +1,6 @@
-# API Manager
+# APIZ
 
-API manager is a PHP API Client Development Kit. You can easily handle all kind of JSON api response by using this package.
+APIZ is a PHP API Client Development Kit. You can easily handle all kind of JSON api response by using this package.
 
 ## Requirements
 
