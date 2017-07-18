@@ -2,11 +2,11 @@
 
 require 'vendor/autoload.php';
 
-use ApiManager\App\GithubApi;
+use ApiManager\App\ReqResApiService;
 
-$api = new GithubApi();
+$api = new ReqResApiService();
 
-$res = $api->me();
+$res = $api->allUsers();
 
 
 dump($res);
