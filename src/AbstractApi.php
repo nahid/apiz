@@ -1,14 +1,14 @@
 <?php
 
-namespace ApiManager;
+namespace Apiz;
 
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
-use ApiManager\Http\Request;
-use ApiManager\Http\Response;
+use Apiz\Http\Request;
+use Apiz\Http\Response;
 
 
 abstract class AbstractApi

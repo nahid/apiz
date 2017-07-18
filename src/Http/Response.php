@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiManager\Http;
+namespace Apiz\Http;
 
 class Response
 {

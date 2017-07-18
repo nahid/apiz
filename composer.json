@@ -1,6 +1,6 @@
 {
-    "name": "nahid/api-manager",
-    "description": "API Manger is a boilerplate for REST API endpoints",
+    "name": "nahid/apiz",
+    "description": "Apiz is a boilerplate for REST API manager",
     "type": "php",
     "require": {
         "php": ">=5.5.9",
@@ -23,7 +23,7 @@
     ],
     "autoload": {
       "psr-4": {
-        "ApiManager\\": "src/"
+        "Apiz\\": "src/"
       },
       "files": [
       ]
