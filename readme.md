@@ -132,3 +132,7 @@ public function createUser(array $data)
 - `delete(string $uri)`
 - `head(string $uri)`
 - `options(string $uri)`
+
+## Extra Methods
+
+- `getGuzzleClient()`

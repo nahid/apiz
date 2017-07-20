@@ -18,7 +18,7 @@ abstract class AbstractApi
     protected $request = [];
     protected $defaultHeaders = [];
     protected $client;
-    protected $parameters= [];
+    protected $parameters = [];
     private $requestMethods = [
         'GET',
         'POST',
@@ -74,6 +74,7 @@ abstract class AbstractApi
         }
         return false;
     }
+
     public function headers($params = array())
     {
         if (is_array($params)) {
@@ -137,12 +138,12 @@ abstract class AbstractApi
             $contents = fopen($file, 'r');
 
             $params = [
-                'name'  => $name,
-                'contents'  => $contents,
-                'filename'  => $filename,
-                'headers'   => $headers
+                'name' => $name,
+                'contents' => $contents,
+                'filename' => $filename,
+                'headers' => $headers
             ];
-         }
+        }
 
         $this->parameters['multipart'][] = $params;
         return $this;
@@ -151,10 +152,10 @@ abstract class AbstractApi
     public function attach($name, $contents, $filename, $headers = [])
     {
         $params = [
-            'name'  => $name,
-            'contents'  => $contents,
-            'filename'  => $filename,
-            'headers'   => $headers
+            'name' => $name,
+            'contents' => $contents,
+            'filename' => $filename,
+            'headers' => $headers
         ];
 
 
@@ -176,7 +177,7 @@ abstract class AbstractApi
         $this->parameters['timeout'] = 60;
 
         if (isset($this->parameters['headers'])) {
-            $this->parameters['headers'] = array_merge($this->defaultHeaders , $this->parameters['headers']);
+            $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
         } else {
             $this->parameters['headers'] = $this->defaultHeaders;
         }
@@ -209,6 +210,15 @@ abstract class AbstractApi
     public function getBaseUrl()
     {
         return $this->baseUrl;
+    }
+
+    /**
+     * Get Guzzle http client object
+     * @return \GuzzleHttp\Client
+     */
+    public function getGuzzleClient()
+    {
+        return $this->client->http;
     }
 
 }
