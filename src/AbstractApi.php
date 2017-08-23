@@ -36,12 +36,15 @@ abstract class AbstractApi
 
         $this->defaultHeaders = $this->setDefaultHeaders();
 
-        //$this->parameters['multipart'] = [];
-
         $this->client = new Request($this->baseUrl);
     }
 
 
+    /**
+     * set base URL for guzzle client
+     *
+     * @return string
+     */
     abstract protected function setBaseUrl();
 
     protected function getAccessToken()
@@ -49,6 +52,11 @@ abstract class AbstractApi
         return '';
     }
 
+    /**
+     * set default headers that will automatically bind with every request headers
+     *
+     * @return array
+     */
     protected function setDefaultHeaders()
     {
         return [];
@@ -66,6 +74,12 @@ abstract class AbstractApi
     }
 
 
+    /**
+     * set form parameters or form data for POST, PUT and PATCH request
+     *
+     * @param array $params
+     * @return $this|bool
+     */
     public function formParams($params = array())
     {
         if (is_array($params)) {
@@ -75,6 +89,12 @@ abstract class AbstractApi
         return false;
     }
 
+    /**
+     * set request headers
+     *
+     * @param array $params
+     * @return $this|bool
+     */
     public function headers($params = array())
     {
         if (is_array($params)) {
@@ -85,6 +105,12 @@ abstract class AbstractApi
     }
 
 
+    /**
+     * set query parameters
+     *
+     * @param array $params
+     * @return $this|bool
+     */
     public function query($params = array())
     {
         if (is_array($params)) {
@@ -172,7 +198,10 @@ abstract class AbstractApi
 
     protected function makeMethodRequest($method, $uri)
     {
-        $uri = trim($this->prefix, '/') . '/' . trim($uri, '/');
+        if (!empty($this->prefix)) {
+            $this->prefix = trim($this->prefix, '/') . '/';
+        }
+        $uri = $this->prefix . trim($uri, '/');
 
         $this->parameters['timeout'] = 60;
 
@@ -203,7 +232,9 @@ abstract class AbstractApi
             $response = $e->getResponse();
         }
 
-        return new Response($response, $request);
+        $resp = new Response($response, $request);
+        $this->resetObject();
+        return $resp;
     }
 
 
@@ -219,6 +250,29 @@ abstract class AbstractApi
     public function getGuzzleClient()
     {
         return $this->client->http;
+    }
+
+    protected function resetObject() {
+        $skip = [
+            'requestMethods',
+            'baseUrl',
+            'defaultHeaders',
+            'prefix',
+            'client'
+        ];
+
+        foreach ($this as $key => $value) {
+            if (!in_array($key, $skip)) {
+                if (is_string($this->$key)) {
+                    $this->$key = '';
+                }
+
+                if (is_array($this->$key)) {
+                    $this->$key = [];
+                }
+            }
+
+        }
     }
 
 }

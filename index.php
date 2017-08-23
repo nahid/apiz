@@ -2,12 +2,14 @@
 
 require 'vendor/autoload.php';
 
-use Apiz\App\ReqResApiService;
-
-$api = new ReqResApiService();
-
-$res = $api->allUsers();
-//$res = $api->createUser(["name"=>"Nahid", "job"=>"Software Engineer"]);
+use Apiz\App\ApiManager;
 
 
-dump($res);
+$api = new ApiManager();
+
+$res = $api->getUsers();
+//$res = $api->upload();
+////$res = $api->createUser(["name"=>"Nahid", "job"=>"Software Engineer"]);
+
+
+dump($res->getMimeType());
