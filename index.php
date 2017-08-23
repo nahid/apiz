@@ -12,4 +12,4 @@ $res = $api->getUsers();
 ////$res = $api->createUser(["name"=>"Nahid", "job"=>"Software Engineer"]);
 
 
-dump($res->getMimeType());
+dump($res->autoParse());

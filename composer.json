@@ -5,7 +5,8 @@
     "require": {
         "php": ">=5.5.9",
         "guzzlehttp/guzzle": "^6.3",
-        "sabre/xml": "dev-master"
+        "ext-xmlwriter" : "*",
+        "lib-libxml" : ">=2.6.20"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2",

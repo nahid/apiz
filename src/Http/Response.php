@@ -7,7 +7,6 @@ class Response
 {
     protected $response;
     protected $request;
-
     protected $contents = '';
 
     function __construct($response, $request)
@@ -25,29 +24,39 @@ class Response
         return false;
     }
 
-    public function fetchDataFromJson()
+
+    public function autoParse()
     {
-        $header = explode(';', $this->response->getHeader('Content-Type')[0]);
-        $contentType = $header[0];
-        if ($contentType == 'application/json') {
-            $contents = $this->response->getBody()->getContents();
-            $contents = json_decode($contents);
-            if (json_last_error() == JSON_ERROR_NONE) {
-                return $contents;
-            }
-            return $contents;
+       $type = $this->getMimeType();
+       $contents = '';
+
+       if ($type == 'application/json' || $type == 'text/json') {
+            $contents = $this->parseJson();
+       }elseif ($type == 'application/xml' || $type == 'text/xml') {
+            $contents = $this->parseXml();
+        }elseif ($type == 'application/x-yaml' || $type == 'text/yaml') {
+            $contents = $this->parseYaml();
+        }else {
+           $contents = $this->getContents();
         }
-        return false;
+
+        return $contents;
     }
 
-    public function fetchContents()
+    private function fetchContents()
     {
         return $this->response->getBody()->getContents();
     }
 
+    public function getMimeTypes()
+    {
+        return explode(';', $this->response->getHeader('Content-Type')[0]);
+    }
+
+
     public function getMimeType()
     {
-        $header = explode(';', $this->response->getHeader('Content-Type')[0]);
+        $header = $this->getMimeTypes();
         $contentType = $header[0];
         return $contentType;
     }
@@ -57,7 +66,12 @@ class Response
         return $this->contents;
     }
 
-    public function parseJson($array=false)
+    public function getRequests()
+    {
+        return $this->request;
+    }
+
+    public function parseJson($array = false)
     {
         if ($this->getMimeType() == 'application/json') {
             $contents = $this->getContents();
@@ -65,14 +79,13 @@ class Response
             if (json_last_error() == JSON_ERROR_NONE) {
                 return $contents;
             }
-            return $contents;
         }
         return false;
     }
 
     public function parseXml()
     {
-        libxml_use_internal_errors(true); // !!!
+        libxml_use_internal_errors(true);
 
         if ($this->getMimeType() == 'application/xml') {
             $elem = simplexml_load_string($this->contents);
