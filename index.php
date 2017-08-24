@@ -7,9 +7,9 @@ use Apiz\App\ApiManager;
 
 $api = new ApiManager();
 
-$res = $api->getUsers();
+$res = $api->uploads();
 //$res = $api->upload();
 ////$res = $api->createUser(["name"=>"Nahid", "job"=>"Software Engineer"]);
 
 
-dump($res->autoParse());
+dump($res);

@@ -4,13 +4,17 @@ namespace Apiz\Http;
 
 use GuzzleHttp\Client;
 
-class  Request
+class Request
 {
-    var $http;
+    /**
+     * Guzzle http client object
+     *
+     * @var Client
+     */
+    public $http;
 
-    function __construct(string $base_url)
+    public function __construct($base_url)
     {
         $this->http = new Client(['base_uri' => $base_url, 'timeout' => 2.0]);
     }
-
 }

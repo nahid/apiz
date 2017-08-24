@@ -4,6 +4,7 @@
     "type": "php",
     "require": {
         "php": ">=5.5.9",
+        "ext-curl": "*",
         "guzzlehttp/guzzle": "^6.3",
         "ext-xmlwriter" : "*",
         "lib-libxml" : ">=2.6.20"

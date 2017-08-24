@@ -10,15 +10,57 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
 
-
 abstract class AbstractApi
 {
+    /**
+     * guzzle base URL
+     *
+     * @var string
+     */
     protected $baseUrl = '';
+
+    /**
+     * URL prefix
+     *
+     * @var string
+     */
     protected $prefix = '';
+
+
+    /**
+     * this variable contains request details
+     *
+     * @var array
+     */
     protected $request = [];
+
+
+    /**
+     * Default headers options for request
+     *
+     * @var array
+     */
     protected $defaultHeaders = [];
+
+    /**
+     * Guzzle http object
+     *
+     * @var Request
+     */
     protected $client;
+
+    /**
+     * Request parameters
+     *
+     * @var array
+     */
     protected $parameters = [];
+
+    /**
+     * All supported HTTP verbs
+     *
+     * @var array
+     */
     private $requestMethods = [
         'GET',
         'POST',
@@ -30,7 +72,7 @@ abstract class AbstractApi
     ];
 
 
-    function __construct()
+    public function __construct()
     {
         $this->baseUrl = $this->setBaseUrl();
 
@@ -47,6 +89,11 @@ abstract class AbstractApi
      */
     abstract protected function setBaseUrl();
 
+    /**
+     * Set access token retrieval method
+     *
+     * @return string
+     */
     protected function getAccessToken()
     {
         return '';
@@ -80,7 +127,7 @@ abstract class AbstractApi
      * @param array $params
      * @return $this|bool
      */
-    public function formParams($params = array())
+    protected function formParams($params = array())
     {
         if (is_array($params)) {
             $this->parameters['form_params'] = $params;
@@ -95,7 +142,7 @@ abstract class AbstractApi
      * @param array $params
      * @return $this|bool
      */
-    public function headers($params = array())
+    protected function headers($params = array())
     {
         if (is_array($params)) {
             $this->parameters['headers'] = $params;
@@ -111,7 +158,7 @@ abstract class AbstractApi
      * @param array $params
      * @return $this|bool
      */
-    public function query($params = array())
+    protected function query($params = array())
     {
         if (is_array($params)) {
             $this->parameters['query'] = $params;
@@ -120,7 +167,13 @@ abstract class AbstractApi
         return false;
     }
 
-    public function allowRedirects($params = [])
+    /**
+     * Add allow redirects param
+     *
+     * @param array $params
+     * @return $this|bool
+     */
+    protected function allowRedirects($params = [])
     {
         if (is_array($params)) {
             $this->parameters['allow_redirects'] = $params;
@@ -129,7 +182,15 @@ abstract class AbstractApi
         return false;
     }
 
-    public function auth($username, $password, $opts = [])
+    /**
+     * Set basic auth options
+     *
+     * @param       $username
+     * @param       $password
+     * @param array $opts
+     * @return $this
+     */
+    protected function auth($username, $password, $opts = [])
     {
         $params = [$username, $password];
 
@@ -141,13 +202,27 @@ abstract class AbstractApi
         return $this;
     }
 
-    public function body($contents)
+
+    /**
+     * Set request body
+     *
+     * @param string|blob
+     * @return $this|bool
+     */
+    protected function body($contents)
     {
-        $this->parameters['body'] = $contents;
+        $this->parameters['body']   = $contents;
         return $this;
     }
 
-    public function json($params = [])
+
+    /**
+     * Set request param as JSON
+     *
+     * @param array $params
+     * @return $this|bool
+     */
+    protected function json($params = [])
     {
         if (is_array($params)) {
             $this->parameters['json'] = $params;
@@ -156,7 +231,16 @@ abstract class AbstractApi
         return false;
     }
 
-    public function file($name, $file, $filename, $headers = [])
+    /**
+     * Send file to the request
+     *
+     * @param       $name
+     * @param       $file
+     * @param       $filename
+     * @param array $headers
+     * @return $this
+     */
+    protected function file($name, $file, $filename, $headers = [])
     {
         $params = [];
 
@@ -175,7 +259,16 @@ abstract class AbstractApi
         return $this;
     }
 
-    public function attach($name, $contents, $filename, $headers = [])
+    /**
+     * Attach a raw content with request
+     *
+     * @param       $name
+     * @param       $contents
+     * @param       $filename
+     * @param array $headers
+     * @return $this
+     */
+    protected function attach($name, $contents, $filename, $headers = [])
     {
         $params = [
             'name' => $name,
@@ -189,13 +282,26 @@ abstract class AbstractApi
         return $this;
     }
 
-    public function params($options = [])
+    /**
+     * Set all parameters from this single options
+     *
+     * @param array $options
+     * @return $this
+     */
+    protected function params($options = [])
     {
         $this->parameters = $options;
         return $this;
     }
 
 
+    /**
+     * Make all request from here
+     *
+     * @param string $method
+     * @param string $uri
+     * @return Response
+     */
     protected function makeMethodRequest($method, $uri)
     {
         if (!empty($this->prefix)) {
@@ -203,7 +309,7 @@ abstract class AbstractApi
         }
         $uri = $this->prefix . trim($uri, '/');
 
-        $this->parameters['timeout'] = 60;
+        //$this->parameters['timeout'] = 60;
 
         if (isset($this->parameters['headers'])) {
             $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
@@ -218,7 +324,7 @@ abstract class AbstractApi
         ];
 
         $request = new Psr7Request($method, $uri);
-        $request->info = $this->request;
+        $request->details = $this->request;
 
         try {
             $response = $this->client->http->send($request, $this->parameters);
@@ -233,11 +339,16 @@ abstract class AbstractApi
         }
 
         $resp = new Response($response, $request);
-        $this->resetObject();
+        $this->resetObjects();
         return $resp;
     }
 
 
+    /**
+     * Get base URL
+     *
+     * @return string
+     */
     public function getBaseUrl()
     {
         return $this->baseUrl;
@@ -245,6 +356,7 @@ abstract class AbstractApi
 
     /**
      * Get Guzzle http client object
+     *
      * @return \GuzzleHttp\Client
      */
     public function getGuzzleClient()
@@ -252,7 +364,11 @@ abstract class AbstractApi
         return $this->client->http;
     }
 
-    protected function resetObject() {
+    /**
+     * Reset this class objects
+     */
+    protected function resetObjects()
+    {
         $skip = [
             'requestMethods',
             'baseUrl',
@@ -271,8 +387,6 @@ abstract class AbstractApi
                     $this->$key = [];
                 }
             }
-
         }
     }
-
 }
