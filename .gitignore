@@ -2,3 +2,4 @@
 /src/App
 /vendor
 .DS_Store
+.php_cs.cache
