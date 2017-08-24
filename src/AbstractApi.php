@@ -206,11 +206,18 @@ abstract class AbstractApi
     /**
      * Set request body
      *
-     * @param string|blob
+     * @param string|blob|array
      * @return $this|bool
      */
     protected function body($contents)
     {
+        if (is_array($contents)) {
+            $this->headers([
+                'Content-Type'=>'application/json'
+            ]);
+
+            $contents = json_encode($contents);
+        }
         $this->parameters['body']   = $contents;
         return $this;
     }
@@ -315,6 +322,10 @@ abstract class AbstractApi
             $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
         } else {
             $this->parameters['headers'] = $this->defaultHeaders;
+        }
+
+        if (count($this->parameters['headers']) < 1) {
+            unset($this->parameters['headers']);
         }
 
         $this->request = [
