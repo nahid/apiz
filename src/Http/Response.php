@@ -126,14 +126,18 @@ class Response
      */
     public function parseJson($array = false)
     {
-        if ($this->getMimeType() == 'application/json') {
+        $type = $this->getMimeType();
+
+        if ( $type == 'application/json' || $type == 'text/json' ) {
             $contents = $this->getContents();
             $contents = json_decode($contents, $array);
-            if (json_last_error() == JSON_ERROR_NONE) {
+            if ( json_last_error() == JSON_ERROR_NONE ) {
                 return $contents;
             }
         }
+
         return false;
+
     }
 
     /**
@@ -144,10 +148,11 @@ class Response
     public function parseXml()
     {
         libxml_use_internal_errors(true);
-
-        if ($this->getMimeType() == 'application/xml') {
+        
+        $type = $this->getMimeType();
+        if ( $type == 'application/xml' || $type == 'text/xml' ) {
             $elem = simplexml_load_string($this->contents);
-            if ($elem !== false) {
+            if ( $elem !== false ) {
                 return $elem;
             } else {
                 return libxml_get_errors();
@@ -164,8 +169,12 @@ class Response
      */
     public function parseYaml()
     {
-        if ($this->getMimeType() == 'application/x-yaml' || $this->getMimeType() == 'text/yaml') {
+        $type = $this->getMimeType();
+
+        if ( $type == 'application/x-yaml' || $type == 'text/yaml' ) {
             return yaml_parse($this->getContents());
         }
+
+        return false;
     }
 }
