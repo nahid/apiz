@@ -2,6 +2,8 @@
 
 namespace Apiz\Http;
 
+use Apiz\Exceptions\NoResponseException;
+
 class Response
 {
     /**
@@ -30,6 +32,11 @@ class Response
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
+
+        if(is_null($response)) {
+            throw new NoResponseException();
+        }
+
         $this->response = $response;
         $this->contents = $this->fetchContents();
     }

@@ -13,8 +13,10 @@ class Request
      */
     public $http;
 
-    public function __construct($base_url)
+    public function __construct($base_url, $options  = [])
     {
-        $this->http = new Client(['base_uri' => $base_url, 'timeout' => 2.0]);
+        $default = ['base_uri' => $base_url, 'timeout' => 30.0];
+        $opts = array_merge($default, $options);
+        $this->http = new Client($opts);
     }
 }

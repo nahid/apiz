@@ -13,6 +13,13 @@ use Apiz\Http\Response;
 abstract class AbstractApi
 {
     /**
+     * Options for guzzle clients
+     *
+     * @var array
+     */
+    protected $options = [];
+
+    /**
      * guzzle base URL
      *
      * @var string
@@ -78,7 +85,7 @@ abstract class AbstractApi
 
         $this->defaultHeaders = $this->setDefaultHeaders();
 
-        $this->client = new Request($this->baseUrl);
+        $this->client = new Request($this->baseUrl, $this->options);
     }
 
 
@@ -348,6 +355,7 @@ abstract class AbstractApi
         } catch (ServerException $e) {
             $response = $e->getResponse();
         }
+
 
         $resp = new Response($response, $request);
         $this->resetObjects();
