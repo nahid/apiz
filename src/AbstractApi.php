@@ -116,6 +116,8 @@ abstract class AbstractApi
         return [];
     }
 
+
+
     public function __call($func, $params)
     {
         $method = strtoupper($func);

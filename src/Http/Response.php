@@ -49,6 +49,21 @@ class Response
         return false;
     }
 
+    /**
+     * execute any script after getting response
+     *
+     * @param callable $fn
+     * @return null
+     */
+    public function afterResponse(callable $fn)
+    {
+        if (is_callable($fn)) {
+            return $fn($this);
+        }
+
+        return null;
+    }
+
 
     /**
      * Automatically parse response contents based on mime type
@@ -60,7 +75,7 @@ class Response
         $type = $this->getMimeType();
         $contents = '';
 
-        if ($type == 'application/json' || $type == 'text/json') {
+        if ($type == 'application/json' || $type == 'text/json' || $type == 'application/javascript') {
             $contents = $this->parseJson();
         } elseif ($type == 'application/xml' || $type == 'text/xml') {
             $contents = $this->parseXml();
@@ -135,7 +150,7 @@ class Response
     {
         $type = $this->getMimeType();
 
-        if ( $type == 'application/json' || $type == 'text/json' ) {
+        if ( $type == 'application/json' || $type == 'text/json'|| $type == 'application/javascript' ) {
             $contents = $this->getContents();
             $contents = json_decode($contents, $array);
             if ( json_last_error() == JSON_ERROR_NONE ) {
