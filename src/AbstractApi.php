@@ -49,6 +49,9 @@ abstract class AbstractApi
      */
     protected $defaultHeaders = [];
 
+
+    protected $skipDefaultHeader = false;
+
     /**
      * Guzzle http object
      *
@@ -158,6 +161,13 @@ abstract class AbstractApi
             return $this;
         }
         return false;
+    }
+
+    protected function skipDefaultHeaders()
+    {
+        $this->skipDefaultHeader = true;
+
+        return $this;
     }
 
 
@@ -327,14 +337,16 @@ abstract class AbstractApi
 
         //$this->parameters['timeout'] = 60;
 
-        if (isset($this->parameters['headers'])) {
-            $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
-        } else {
-            $this->parameters['headers'] = $this->defaultHeaders;
-        }
+        if (!$this->skipDefaultHeader) {
+            if (isset($this->parameters['headers'])) {
+                $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
+            } else {
+                $this->parameters['headers'] = $this->defaultHeaders;
+            }
 
-        if (count($this->parameters['headers']) < 1) {
-            unset($this->parameters['headers']);
+            if (count($this->parameters['headers']) < 1) {
+                unset($this->parameters['headers']);
+            }
         }
 
         $this->request = [
@@ -390,23 +402,16 @@ abstract class AbstractApi
      */
     protected function resetObjects()
     {
-        $skip = [
-            'requestMethods',
-            'baseUrl',
-            'defaultHeaders',
-            'prefix',
-            'client'
+        $clearGarbage = [
+            'skipDefaultHeader' => false,
+            'options' => [],
+            'request'   => [],
+            'parameters' => [],
         ];
 
-        foreach ($this as $key => $value) {
-            if (!in_array($key, $skip)) {
-                if (is_string($this->$key)) {
-                    $this->$key = '';
-                }
-
-                if (is_array($this->$key)) {
-                    $this->$key = [];
-                }
+        foreach ($clearGarbage as $key=>$value) {
+            if (property_exists($this, $key)) {
+                $this->$key=$value;
             }
         }
     }
