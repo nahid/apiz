@@ -13,6 +13,21 @@ use Apiz\Http\Response;
 abstract class AbstractApi
 {
     /**
+     * list of available http exceptions
+     *
+     * @var array
+     */
+    protected $httpExceptions = [];
+
+
+    /**
+     * skip exception when its value true
+     *
+     * @var bool
+     */
+    protected $skipHttpException = false;
+
+    /**
      * Options for guzzle clients
      *
      * @var array
@@ -50,6 +65,11 @@ abstract class AbstractApi
     protected $defaultHeaders = [];
 
 
+    /**
+     * when need to skip default header make it true
+     *
+     * @var bool
+     */
     protected $skipDefaultHeader = false;
 
     /**
@@ -163,6 +183,9 @@ abstract class AbstractApi
         return false;
     }
 
+    /**
+     * @return $this
+     */
     protected function skipDefaultHeaders()
     {
         $this->skipDefaultHeader = true;
@@ -322,6 +345,43 @@ abstract class AbstractApi
 
 
     /**
+     * skip default http exception from request
+     *
+     * @param array $exceptions
+     * @return $this
+     */
+    protected function skipHttpExceptions(array $exceptions = [])
+    {
+        if (count($exceptions)>0) {
+            foreach ($exceptions as $code) {
+                unset($this->httpExceptions[$code]);
+            }
+
+            return $this;
+        }
+
+        $this->skipHttpException = true;
+
+        return $this;
+    }
+
+    /**
+     * push new http exceptions to current request
+     *
+     * @param array $exceptions
+     * @return $this
+     */
+    protected function pushHttpExceptions(array $exceptions = [])
+    {
+        foreach($exceptions as $code=>$exception) {
+            $this->httpExceptions[$code] = $exception;
+        }
+
+        return $this;
+    }
+
+
+    /**
      * Make all request from here
      *
      * @param string $method
@@ -335,7 +395,6 @@ abstract class AbstractApi
         }
         $uri = $this->prefix . trim($uri, '/');
 
-        //$this->parameters['timeout'] = 60;
 
         if (!$this->skipDefaultHeader) {
             if (isset($this->parameters['headers'])) {
@@ -368,6 +427,12 @@ abstract class AbstractApi
             $response = $e->getResponse();
         } catch (ServerException $e) {
             $response = $e->getResponse();
+        }
+
+        if (!$this->skipHttpException) {
+            if ($response instanceof \GuzzleHttp\Psr7\Response) {
+                new HttpExceptionReceiver($response, $this->httpExceptions);
+            }
         }
 
 
@@ -407,6 +472,7 @@ abstract class AbstractApi
             'options' => [],
             'request'   => [],
             'parameters' => [],
+            'skipHttpException' => false,
         ];
 
         foreach ($clearGarbage as $key=>$value) {

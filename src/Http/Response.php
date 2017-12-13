@@ -36,7 +36,7 @@ class Response
         if(is_null($response)) {
             throw new NoResponseException();
         }
-
+        
         $this->response = $response;
         $this->contents = $this->fetchContents();
     }
