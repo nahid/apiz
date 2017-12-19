@@ -119,6 +119,17 @@ abstract class AbstractApi
      */
     abstract protected function setBaseUrl();
 
+
+    /**
+     * set url prefix from code
+     *
+     * @return null|string
+     */
+    protected function setPrefix()
+    {
+        return null;
+    }
+
     /**
      * Set access token retrieval method
      *
@@ -410,6 +421,10 @@ abstract class AbstractApi
      */
     protected function makeMethodRequest($method, $uri)
     {
+        if (!is_null($this->setPrefix())) {
+            $this->prefix = $this->setPrefix();
+        }
+
         if (!empty($this->prefix)) {
             $this->prefix = trim($this->prefix, '/') . '/';
         }
