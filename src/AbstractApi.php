@@ -157,7 +157,7 @@ abstract class AbstractApi
      * set form parameters or form data for POST, PUT and PATCH request
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function formParams($params = array())
     {
@@ -172,7 +172,7 @@ abstract class AbstractApi
      * set request headers
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function headers($params = array())
     {
@@ -184,7 +184,7 @@ abstract class AbstractApi
     }
 
     /**
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function skipDefaultHeaders()
     {
@@ -198,7 +198,7 @@ abstract class AbstractApi
      * set query parameters
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function query($params = array())
     {
@@ -213,7 +213,7 @@ abstract class AbstractApi
      * Add allow redirects param
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function allowRedirects($params = [])
     {
@@ -230,7 +230,7 @@ abstract class AbstractApi
      * @param       $username
      * @param       $password
      * @param array $opts
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function auth($username, $password, $opts = [])
     {
@@ -249,7 +249,7 @@ abstract class AbstractApi
      * Set request body
      *
      * @param string|blob|array
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function body($contents)
     {
@@ -269,7 +269,7 @@ abstract class AbstractApi
      * Set request param as JSON
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function json($params = [])
     {
@@ -287,7 +287,7 @@ abstract class AbstractApi
      * @param       $file
      * @param       $filename
      * @param array $headers
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function file($name, $file, $filename, $headers = [])
     {
@@ -315,7 +315,7 @@ abstract class AbstractApi
      * @param       $contents
      * @param       $filename
      * @param array $headers
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function attach($name, $contents, $filename, $headers = [])
     {
@@ -332,10 +332,30 @@ abstract class AbstractApi
     }
 
     /**
+     * Attach form value with multipart
+     *
+     * @param       array $data
+     * @return \Apiz\AbstractApi
+     */
+    protected function formData($data = [])
+    {
+        foreach($data as $key=>$value) {
+            $params = [
+                'name' => $key,
+                'contents' => $value
+            ];
+
+            $this->parameters['multipart'][] = $params;
+        }
+
+        return $this;
+    }
+
+    /**
      * Set all parameters from this single options
      *
      * @param array $options
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function params($options = [])
     {
@@ -348,7 +368,7 @@ abstract class AbstractApi
      * skip default http exception from request
      *
      * @param array $exceptions
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function skipHttpExceptions(array $exceptions = [])
     {
@@ -369,7 +389,7 @@ abstract class AbstractApi
      * push new http exceptions to current request
      *
      * @param array $exceptions
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function pushHttpExceptions(array $exceptions = [])
     {
