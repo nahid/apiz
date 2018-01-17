@@ -18,10 +18,6 @@
         {
             "name": "Nahid Bin Azhar",
             "email": "nahid.dns@gmail.com"
-        },
-        {
-            "name": "Saddam Hossain",
-            "email": "thedevsaddam@gmail.com"
         }
     ],
     "autoload": {
