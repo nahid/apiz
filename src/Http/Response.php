@@ -2,6 +2,8 @@
 
 namespace Apiz\Http;
 
+use Apiz\Exceptions\NoResponseException;
+
 class Response
 {
     /**
@@ -30,6 +32,11 @@ class Response
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
+
+        if(is_null($response)) {
+            throw new NoResponseException();
+        }
+        
         $this->response = $response;
         $this->contents = $this->fetchContents();
     }
@@ -40,6 +47,21 @@ class Response
             return call_user_func_array([$this->response, $method], $args);
         }
         return false;
+    }
+
+    /**
+     * execute any script after getting response
+     *
+     * @param callable $fn
+     * @return null
+     */
+    public function afterResponse(callable $fn)
+    {
+        if (is_callable($fn)) {
+            return $fn($this);
+        }
+
+        return null;
     }
 
 
@@ -53,7 +75,7 @@ class Response
         $type = $this->getMimeType();
         $contents = '';
 
-        if ($type == 'application/json' || $type == 'text/json') {
+        if ($type == 'application/json' || $type == 'text/json' || $type == 'application/javascript') {
             $contents = $this->parseJson();
         } elseif ($type == 'application/xml' || $type == 'text/xml') {
             $contents = $this->parseXml();
@@ -126,14 +148,18 @@ class Response
      */
     public function parseJson($array = false)
     {
-        if ($this->getMimeType() == 'application/json') {
+        $type = $this->getMimeType();
+
+        if ( $type == 'application/json' || $type == 'text/json'|| $type == 'application/javascript' ) {
             $contents = $this->getContents();
             $contents = json_decode($contents, $array);
-            if (json_last_error() == JSON_ERROR_NONE) {
+            if ( json_last_error() == JSON_ERROR_NONE ) {
                 return $contents;
             }
         }
+
         return false;
+
     }
 
     /**
@@ -144,10 +170,11 @@ class Response
     public function parseXml()
     {
         libxml_use_internal_errors(true);
-
-        if ($this->getMimeType() == 'application/xml') {
+        
+        $type = $this->getMimeType();
+        if ( $type == 'application/xml' || $type == 'text/xml' ) {
             $elem = simplexml_load_string($this->contents);
-            if ($elem !== false) {
+            if ( $elem !== false ) {
                 return $elem;
             } else {
                 return libxml_get_errors();
@@ -164,8 +191,12 @@ class Response
      */
     public function parseYaml()
     {
-        if ($this->getMimeType() == 'application/x-yaml' || $this->getMimeType() == 'text/yaml') {
+        $type = $this->getMimeType();
+
+        if ( $type == 'application/x-yaml' || $type == 'text/yaml' ) {
             return yaml_parse($this->getContents());
         }
+
+        return false;
     }
 }

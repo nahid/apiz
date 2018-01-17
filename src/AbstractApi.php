@@ -13,6 +13,28 @@ use Apiz\Http\Response;
 abstract class AbstractApi
 {
     /**
+     * list of available http exceptions
+     *
+     * @var array
+     */
+    protected $httpExceptions = [];
+
+
+    /**
+     * skip exception when its value true
+     *
+     * @var bool
+     */
+    protected $skipHttpException = false;
+
+    /**
+     * Options for guzzle clients
+     *
+     * @var array
+     */
+    protected $options = [];
+
+    /**
      * guzzle base URL
      *
      * @var string
@@ -41,6 +63,14 @@ abstract class AbstractApi
      * @var array
      */
     protected $defaultHeaders = [];
+
+
+    /**
+     * when need to skip default header make it true
+     *
+     * @var bool
+     */
+    protected $skipDefaultHeader = false;
 
     /**
      * Guzzle http object
@@ -78,7 +108,7 @@ abstract class AbstractApi
 
         $this->defaultHeaders = $this->setDefaultHeaders();
 
-        $this->client = new Request($this->baseUrl);
+        $this->client = new Request($this->baseUrl, $this->options);
     }
 
 
@@ -88,6 +118,17 @@ abstract class AbstractApi
      * @return string
      */
     abstract protected function setBaseUrl();
+
+
+    /**
+     * set url prefix from code
+     *
+     * @return null|string
+     */
+    protected function setPrefix()
+    {
+        return null;
+    }
 
     /**
      * Set access token retrieval method
@@ -109,6 +150,8 @@ abstract class AbstractApi
         return [];
     }
 
+
+
     public function __call($func, $params)
     {
         $method = strtoupper($func);
@@ -125,7 +168,7 @@ abstract class AbstractApi
      * set form parameters or form data for POST, PUT and PATCH request
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function formParams($params = array())
     {
@@ -140,7 +183,7 @@ abstract class AbstractApi
      * set request headers
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function headers($params = array())
     {
@@ -151,12 +194,22 @@ abstract class AbstractApi
         return false;
     }
 
+    /**
+     * @return \Apiz\AbstractApi
+     */
+    protected function skipDefaultHeaders()
+    {
+        $this->skipDefaultHeader = true;
+
+        return $this;
+    }
+
 
     /**
      * set query parameters
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function query($params = array())
     {
@@ -171,7 +224,7 @@ abstract class AbstractApi
      * Add allow redirects param
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function allowRedirects($params = [])
     {
@@ -188,7 +241,7 @@ abstract class AbstractApi
      * @param       $username
      * @param       $password
      * @param array $opts
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function auth($username, $password, $opts = [])
     {
@@ -207,7 +260,7 @@ abstract class AbstractApi
      * Set request body
      *
      * @param string|blob|array
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function body($contents)
     {
@@ -227,7 +280,7 @@ abstract class AbstractApi
      * Set request param as JSON
      *
      * @param array $params
-     * @return $this|bool
+     * @return \Apiz\AbstractApi|bool
      */
     protected function json($params = [])
     {
@@ -245,7 +298,7 @@ abstract class AbstractApi
      * @param       $file
      * @param       $filename
      * @param array $headers
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function file($name, $file, $filename, $headers = [])
     {
@@ -273,7 +326,7 @@ abstract class AbstractApi
      * @param       $contents
      * @param       $filename
      * @param array $headers
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function attach($name, $contents, $filename, $headers = [])
     {
@@ -290,14 +343,71 @@ abstract class AbstractApi
     }
 
     /**
+     * Attach form value with multipart
+     *
+     * @param       array $data
+     * @return \Apiz\AbstractApi
+     */
+    protected function formData($data = [])
+    {
+        foreach($data as $key=>$value) {
+            $params = [
+                'name' => $key,
+                'contents' => $value
+            ];
+
+            $this->parameters['multipart'][] = $params;
+        }
+
+        return $this;
+    }
+
+    /**
      * Set all parameters from this single options
      *
      * @param array $options
-     * @return $this
+     * @return \Apiz\AbstractApi
      */
     protected function params($options = [])
     {
         $this->parameters = $options;
+        return $this;
+    }
+
+
+    /**
+     * skip default http exception from request
+     *
+     * @param array $exceptions
+     * @return \Apiz\AbstractApi
+     */
+    protected function skipHttpExceptions(array $exceptions = [])
+    {
+        if (count($exceptions)>0) {
+            foreach ($exceptions as $code) {
+                unset($this->httpExceptions[$code]);
+            }
+
+            return $this;
+        }
+
+        $this->skipHttpException = true;
+
+        return $this;
+    }
+
+    /**
+     * push new http exceptions to current request
+     *
+     * @param array $exceptions
+     * @return \Apiz\AbstractApi
+     */
+    protected function pushHttpExceptions(array $exceptions = [])
+    {
+        foreach($exceptions as $code=>$exception) {
+            $this->httpExceptions[$code] = $exception;
+        }
+
         return $this;
     }
 
@@ -311,21 +421,26 @@ abstract class AbstractApi
      */
     protected function makeMethodRequest($method, $uri)
     {
+        if (!is_null($this->setPrefix())) {
+            $this->prefix = $this->setPrefix();
+        }
+
         if (!empty($this->prefix)) {
             $this->prefix = trim($this->prefix, '/') . '/';
         }
         $uri = $this->prefix . trim($uri, '/');
 
-        //$this->parameters['timeout'] = 60;
 
-        if (isset($this->parameters['headers'])) {
-            $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
-        } else {
-            $this->parameters['headers'] = $this->defaultHeaders;
-        }
+        if (!$this->skipDefaultHeader) {
+            if (isset($this->parameters['headers'])) {
+                $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
+            } else {
+                $this->parameters['headers'] = $this->defaultHeaders;
+            }
 
-        if (count($this->parameters['headers']) < 1) {
-            unset($this->parameters['headers']);
+            if (count($this->parameters['headers']) < 1) {
+                unset($this->parameters['headers']);
+            }
         }
 
         $this->request = [
@@ -348,6 +463,13 @@ abstract class AbstractApi
         } catch (ServerException $e) {
             $response = $e->getResponse();
         }
+
+        if (!$this->skipHttpException) {
+            if ($response instanceof \GuzzleHttp\Psr7\Response) {
+                new HttpExceptionReceiver($response, $this->httpExceptions);
+            }
+        }
+
 
         $resp = new Response($response, $request);
         $this->resetObjects();
@@ -380,23 +502,17 @@ abstract class AbstractApi
      */
     protected function resetObjects()
     {
-        $skip = [
-            'requestMethods',
-            'baseUrl',
-            'defaultHeaders',
-            'prefix',
-            'client'
+        $clearGarbage = [
+            'skipDefaultHeader' => false,
+            'options' => [],
+            'request'   => [],
+            'parameters' => [],
+            'skipHttpException' => false,
         ];
 
-        foreach ($this as $key => $value) {
-            if (!in_array($key, $skip)) {
-                if (is_string($this->$key)) {
-                    $this->$key = '';
-                }
-
-                if (is_array($this->$key)) {
-                    $this->$key = [];
-                }
+        foreach ($clearGarbage as $key=>$value) {
+            if (property_exists($this, $key)) {
+                $this->$key=$value;
             }
         }
     }
