@@ -64,6 +64,13 @@ abstract class AbstractApi
      */
     protected $defaultHeaders = [];
 
+    /**
+     * Default Query options for request
+     *
+     * @var array
+     */
+    protected $defaultQueries = [];
+
 
     /**
      * when need to skip default header make it true
@@ -71,6 +78,13 @@ abstract class AbstractApi
      * @var bool
      */
     protected $skipDefaultHeader = false;
+
+    /**
+     * when need to skip default query make it true
+     *
+     * @var bool
+     */
+    protected $skipDefaultQueries = false;
 
     /**
      * Guzzle http object
@@ -150,6 +164,16 @@ abstract class AbstractApi
         return [];
     }
 
+    /**
+     * set default queries that will automatically bind with every request headers
+     *
+     * @return array
+     */
+    protected function setDefaultQueries()
+    {
+        return [];
+    }
+
 
 
     public function __call($func, $params)
@@ -200,6 +224,16 @@ abstract class AbstractApi
     protected function skipDefaultHeaders()
     {
         $this->skipDefaultHeader = true;
+
+        return $this;
+    }
+
+    /**
+     * @return \Apiz\AbstractApi
+     */
+    protected function skipDefaultQueries()
+    {
+        $this->skipDefaultQueries = true;
 
         return $this;
     }
@@ -430,18 +464,9 @@ abstract class AbstractApi
         }
         $uri = $this->prefix . trim($uri, '/');
 
+        $this->mergeDefaultHeaders();
+        $this->mergeDefaultQueries();
 
-        if (!$this->skipDefaultHeader) {
-            if (isset($this->parameters['headers'])) {
-                $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
-            } else {
-                $this->parameters['headers'] = $this->defaultHeaders;
-            }
-
-            if (count($this->parameters['headers']) < 1) {
-                unset($this->parameters['headers']);
-            }
-        }
 
         $this->request = [
             'url' => trim($this->baseUrl, '/') . '/' . $uri,
@@ -513,6 +538,37 @@ abstract class AbstractApi
         foreach ($clearGarbage as $key=>$value) {
             if (property_exists($this, $key)) {
                 $this->$key=$value;
+            }
+        }
+    }
+
+
+    protected function mergeDefaultHeaders()
+    {
+        if (!$this->skipDefaultHeader) {
+            if (isset($this->parameters['headers'])) {
+                $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
+            } else {
+                $this->parameters['headers'] = $this->defaultHeaders;
+            }
+
+            if (count($this->parameters['headers']) < 1) {
+                unset($this->parameters['headers']);
+            }
+        }
+    }
+
+    protected function mergeDefaultQueries()
+    {
+        if (!$this->skipDefaultQueries) {
+            if (isset($this->parameters['query'])) {
+                $this->parameters['query'] = array_merge($this->defaultQueries, $this->parameters['query']);
+            } else {
+                $this->parameters['query'] = $this->defaultQueries;
+            }
+
+            if (count($this->parameters['query']) < 1) {
+                unset($this->parameters['query']);
             }
         }
     }
