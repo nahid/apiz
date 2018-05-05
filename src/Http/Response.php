@@ -3,6 +3,7 @@
 namespace Apiz\Http;
 
 use Apiz\Exceptions\NoResponseException;
+use Nahid\JsonQ\Jsonq;
 
 class Response
 {
@@ -29,6 +30,8 @@ class Response
      */
     protected $contents = '';
 
+    protected $jsonData = null;
+
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
@@ -39,6 +42,8 @@ class Response
         
         $this->response = $response;
         $this->contents = $this->fetchContents();
+        $this->makeJsonQable();
+
     }
 
     public function __call($method, $args)
@@ -198,5 +203,33 @@ class Response
         }
 
         return false;
+    }
+
+    protected function makeJsonQable()
+    {
+        $json = $this->parseJson(true);
+
+        if ($json) {
+            $jsonq = new Jsonq();
+            $this->jsonData = $jsonq->collect($json);
+        }
+    }
+
+    public function isJson()
+    {
+        if ($this->jsonData instanceof Jsonq) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function json()
+    {
+        if ($this->isJson()) {
+            return $this->jsonData;
+        }
+
+        return (new Jsonq())->collect([]);
     }
 }

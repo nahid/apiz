@@ -8,8 +8,13 @@ use Apiz\App\ReqResApiService;
 $api = new ReqResApiService();
 
 $res = $api->allUsers();
-//$res = $api->upload();
-////$res = $api->createUser(["name"=>"Nahid", "job"=>"Software Engineer"]);
 
-
-dump($res->parseJson());
+if ($res->isJson()) {
+    $r = $res->json()
+        ->from('data')
+        ->where('year', '>=', 2001)
+        ->fetch()
+        ->sortAs('year', 'asc')
+        ->get();
+    dump($r);
+}
