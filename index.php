@@ -2,19 +2,19 @@
 
 require 'vendor/autoload.php';
 
-use Apiz\App\ReqResApiService;
+use Apiz\App\ApiManager;
 
 
-$api = new ReqResApiService();
+$api = new ApiManager();
 
-$res = $api->allUsers();
+$res = $api->albums();
 
 if ($res->isJson()) {
-    $r = $res->json()
-        ->from('data')
-        ->where('year', '>=', 2001)
+    $r = $res()
+        ->from('.')
+        ->where('userId', '=', 10)
         ->fetch()
-        ->sortAs('year', 'asc')
-        ->get();
+        ->sortAs('id', 'desc')
+    ->get();
     dump($r);
 }

@@ -30,7 +30,7 @@ class Response
      */
     protected $contents = '';
 
-    protected $jsonData = null;
+    protected $jsonq = null;
 
     public function __construct($response, $request)
     {
@@ -44,6 +44,11 @@ class Response
         $this->contents = $this->fetchContents();
         $this->makeJsonQable();
 
+    }
+
+    public function __invoke()
+    {
+        return $this->json();
     }
 
     public function __call($method, $args)
@@ -211,13 +216,13 @@ class Response
 
         if ($json) {
             $jsonq = new Jsonq();
-            $this->jsonData = $jsonq->collect($json);
+            $this->jsonq = $jsonq->collect($json);
         }
     }
 
     public function isJson()
     {
-        if ($this->jsonData instanceof Jsonq) {
+        if ($this->jsonq instanceof Jsonq) {
             return true;
         }
 
@@ -227,7 +232,7 @@ class Response
     public function json()
     {
         if ($this->isJson()) {
-            return $this->jsonData;
+            return $this->jsonq;
         }
 
         return (new Jsonq())->collect([]);
