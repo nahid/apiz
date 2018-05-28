@@ -121,6 +121,7 @@ abstract class AbstractApi
         $this->baseUrl = $this->setBaseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
+        $this->defaultQueries = $this->setDefaultQueries();
 
         $this->client = new Request($this->baseUrl, $this->options);
     }

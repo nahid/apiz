@@ -2,19 +2,14 @@
 
 require 'vendor/autoload.php';
 
-use Apiz\App\ApiManager;
+use Apiz\App\Mockery;
 
 
-$api = new ApiManager();
+$api = new Mockery();
 
-$res = $api->albums();
+$res = $api->products();
 
 if ($res->isJson()) {
-    $r = $res()
-        ->from('.')
-        ->where('userId', '=', 10)
-        ->fetch()
-        ->sortAs('id', 'desc')
-    ->get();
+    $r = $res()->whereMonth('createdAt', '05')->get();
     dump($r);
 }
