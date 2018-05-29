@@ -111,11 +111,17 @@ class Response
     /**
      * Get response data mime types
      *
-     * @return array
+     * @return array|null
      */
     public function getMimeTypes()
     {
-        return explode(';', $this->response->getHeader('Content-Type')[0]);
+        $content_types = $this->response->getHeader('Content-Type');
+
+        if (count($content_types) > 0) {
+            return explode(';', $content_types[0]);
+        }
+
+        return null;
     }
 
     /**
@@ -210,6 +216,9 @@ class Response
         return false;
     }
 
+    /**
+     * make Jsonq instance from response
+     */
     protected function makeJsonQable()
     {
         $json = $this->parseJson(true);
@@ -220,6 +229,11 @@ class Response
         }
     }
 
+    /**
+     * check is the response is JSON
+     *
+     * @return bool
+     */
     public function isJson()
     {
         if ($this->jsonq instanceof Jsonq) {
@@ -229,7 +243,42 @@ class Response
         return false;
     }
 
-    public function json()
+    /**
+     * get the response body size
+     *
+     * @return int
+     */
+    public function size()
+    {
+        $lengths = $this->response->getHeader('Content-Length');
+
+        if (count($lengths) > 0) {
+            return (int) $lengths[0];
+        }
+
+        return 0;
+    }
+
+    /**
+     * check is response empty
+     * 
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        if ($this->size()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * return JsonQ instance from response
+     * 
+     * @return Jsonq|null
+     */
+    public function jsonq()
     {
         if ($this->isJson()) {
             return $this->jsonq;

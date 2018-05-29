@@ -2,14 +2,18 @@
 
 require 'vendor/autoload.php';
 
-use Apiz\App\Mockery;
+use Apiz\App\HttpBin;
 
 
-$api = new Mockery();
+$api = new HttpBin();
 
-$res = $api->products();
+$res = $api->xml();
 
-if ($res->isJson()) {
-    $r = $res()->whereMonth('createdAt', '05')->get();
-    dump($r);
+if ($res->getStatusCode() == 200) {
+    dump($res->autoParse());
+}
+
+if ($res->getStatusCode() == 401) {
+    echo 'Unauthorized';
+    dump($res->size());
 }

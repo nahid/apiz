@@ -146,16 +146,6 @@ abstract class AbstractApi
     }
 
     /**
-     * Set access token retrieval method
-     *
-     * @return string
-     */
-    protected function getAccessToken()
-    {
-        return '';
-    }
-
-    /**
      * set default headers that will automatically bind with every request headers
      *
      * @return array
@@ -176,7 +166,11 @@ abstract class AbstractApi
     }
 
 
-
+    /**
+     * @param $func
+     * @param $params
+     * @return Response
+     */
     public function __call($func, $params)
     {
         $method = strtoupper($func);
