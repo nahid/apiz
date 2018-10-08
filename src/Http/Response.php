@@ -48,7 +48,7 @@ class Response
 
     public function __invoke()
     {
-        return $this->json();
+        return $this->jsonq();
     }
 
     public function __call($method, $args)
