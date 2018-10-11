@@ -2,7 +2,7 @@
 
 namespace Apiz\Http;
 
-abstract class ResponseScope
+abstract class ResponseGenerator
 {
     protected $response;
 
@@ -22,12 +22,6 @@ abstract class ResponseScope
                 call_user_func_array([$this, $fire], []);
             }
         }
-    }
-
-    protected function push($method)
-    {
-        array_pull($this->fires, $method);
-        return $this;
     }
 
     protected function jsonq()

@@ -47,9 +47,9 @@ class Response
         $this->makeJsonQable();
 
 
-        $scope = $request->details['scope'];
-        if (class_exists($scope)) {
-            $this->scope = new $scope($this);
+        $generator = $request->details['generator'];
+        if (class_exists($generator)) {
+            $this->scope = new $generator($this);
         }
 
     }

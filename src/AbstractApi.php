@@ -101,7 +101,7 @@ abstract class AbstractApi
     protected $parameters = [];
 
 
-    protected $responseScope;
+    protected $responseGenerator;
 
     /**
      * All supported HTTP verbs
@@ -465,7 +465,7 @@ abstract class AbstractApi
 
         $this->request = [
             'url' => trim($this->baseUrl, '/') . '/' . $uri,
-            'scope' => $this->responseScope,
+            'generator' => $this->responseGenerator,
             'method' => $method,
             'parameters' => $this->parameters
         ];
