@@ -6,20 +6,30 @@ abstract class ResponseGenerator
 {
     protected $response;
 
-    protected $fires = [];
+    protected $pipes = [];
+
+    protected $pipeResponse = null;
 
 
     public function __construct(Response $response)
     {
         $this->response = $response;
-        $this->fire();
+        $this->pipe();
     }
 
-    protected function fire()
+    protected function pipe()
     {
-        foreach($this->fires as $fire) {
-            if (method_exists($this, $fire)) {
-                call_user_func_array([$this, $fire], []);
+        $param = [];
+        foreach($this->pipes as $pipe) {
+            $method = 'pipe' . ucfirst($pipe);
+
+            if (method_exists($this, $method)) {
+                if (count($param) == 0) {
+                    $param = $this->response;
+                }
+
+                $this->pipeResponse = call_user_func_array([$this, $method], [$param]);
+                $param = $this->pipeResponse;
             }
         }
     }
@@ -28,5 +38,10 @@ abstract class ResponseGenerator
     {
         $response = $this->response;
         return $response();
+    }
+
+    public function getPipedData()
+    {
+        return $this->pipeResponse;
     }
 }
