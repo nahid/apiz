@@ -22,6 +22,8 @@ class Response
      */
     protected $request;
 
+    protected $scope = null;
+
 
     /**
      * Store raw contents
@@ -35,20 +37,28 @@ class Response
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
-
         if(is_null($response)) {
             throw new NoResponseException();
         }
-        
+
+
         $this->response = $response;
         $this->contents = $this->fetchContents();
         $this->makeJsonQable();
+
+
+        $scope = $request->details['scope'];
+        if (class_exists($scope)) {
+            $this->scope = new $scope($this);
+        }
 
     }
 
     public function __invoke()
     {
-        return $this->jsonq();
+        $jsonq = new Jsonq();
+
+        return $jsonq->collect($this->parseJson(true));
     }
 
     public function __call($method, $args)
@@ -56,6 +66,11 @@ class Response
         if (method_exists($this->response, $method)) {
             return call_user_func_array([$this->response, $method], $args);
         }
+
+        if (method_exists($this->scope, $method)) {
+            return call_user_func_array([$this->scope, $method], $args);
+        }
+
         return false;
     }
 
@@ -281,7 +296,7 @@ class Response
     public function jsonq()
     {
         if ($this->isJson()) {
-            return $this->jsonq;
+            return clone $this->jsonq;
         }
 
         return (new Jsonq())->collect([]);

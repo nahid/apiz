@@ -100,6 +100,9 @@ abstract class AbstractApi
      */
     protected $parameters = [];
 
+
+    protected $responseScope;
+
     /**
      * All supported HTTP verbs
      *
@@ -118,7 +121,7 @@ abstract class AbstractApi
 
     public function __construct()
     {
-        $this->baseUrl = $this->setBaseUrl();
+        $this->baseUrl = $this->baseURL();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
@@ -132,17 +135,17 @@ abstract class AbstractApi
      *
      * @return string
      */
-    abstract protected function setBaseUrl();
+    abstract protected function baseURL();
 
 
     /**
      * set url prefix from code
-     *
+     * @param string $prefix
      * @return null|string
      */
-    protected function setPrefix()
+    protected function setPrefix($prefix = '')
     {
-        return null;
+        return $this->prefix = $prefix;
     }
 
     /**
@@ -450,9 +453,6 @@ abstract class AbstractApi
      */
     protected function makeMethodRequest($method, $uri)
     {
-        if (!is_null($this->setPrefix())) {
-            $this->prefix = $this->setPrefix();
-        }
 
         if (!empty($this->prefix)) {
             $this->prefix = trim($this->prefix, '/') . '/';
@@ -465,6 +465,7 @@ abstract class AbstractApi
 
         $this->request = [
             'url' => trim($this->baseUrl, '/') . '/' . $uri,
+            'scope' => $this->responseScope,
             'method' => $method,
             'parameters' => $this->parameters
         ];

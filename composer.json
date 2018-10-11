@@ -8,7 +8,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "ext-xmlwriter" : "*",
         "lib-libxml" : ">=2.6.20",
-        "nahid/jsonq" : "^5.1"
+        "nahid/jsonq" : "^5.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2",
