@@ -22,7 +22,7 @@ class Response
      */
     protected $request;
 
-    protected $scope = null;
+    protected $generator = null;
 
 
     /**
@@ -49,7 +49,7 @@ class Response
 
         $generator = $request->details['generator'];
         if (class_exists($generator)) {
-            $this->scope = new $generator($this);
+            $this->generator = new $generator($this);
         }
 
     }
@@ -67,8 +67,8 @@ class Response
             return call_user_func_array([$this->response, $method], $args);
         }
 
-        if (method_exists($this->scope, $method)) {
-            return call_user_func_array([$this->scope, $method], $args);
+        if (method_exists($this->generator, $method)) {
+            return call_user_func_array([$this->generator, $method], $args);
         }
 
         return false;

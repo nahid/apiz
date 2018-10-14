@@ -13,6 +13,11 @@ abstract class ResponseGenerator
     }
 
 
+    /**
+     * create JsonQ instance
+     *
+     * @return \Nahid\JsonQ\Jsonq|null
+     */
     protected function jsonq()
     {
         $response = $this->response;
