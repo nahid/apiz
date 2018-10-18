@@ -22,6 +22,11 @@ class Response
      */
     protected $request;
 
+    /**
+     * instance of ResponseGenerator
+     *
+     * @var null|ResponseGenerator
+     */
     protected $generator = null;
 
 
@@ -32,6 +37,11 @@ class Response
      */
     protected $contents = '';
 
+    /**
+     * instance of JsonQ
+     *
+     * @var null|Jsonq
+     */
     protected $jsonq = null;
 
     public function __construct($response, $request)

@@ -2,6 +2,7 @@
 
 namespace Apiz;
 
+use Apiz\Http\ResponseGenerator;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -100,7 +101,11 @@ abstract class AbstractApi
      */
     protected $parameters = [];
 
-
+    /**
+     * contains custom response
+     *
+     * @var ResponseGenerator
+     */
     protected $responseGenerator;
 
     /**
@@ -121,7 +126,7 @@ abstract class AbstractApi
 
     public function __construct()
     {
-        $this->baseUrl = $this->setBaseUrl();
+        $this->baseUrl = $this->baseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
@@ -135,7 +140,7 @@ abstract class AbstractApi
      *
      * @return string
      */
-    abstract protected function setBaseUrl();
+    abstract protected function baseUrl();
 
 
     /**
