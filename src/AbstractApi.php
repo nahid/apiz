@@ -121,7 +121,7 @@ abstract class AbstractApi
 
     public function __construct()
     {
-        $this->baseUrl = $this->baseURL();
+        $this->baseUrl = $this->setBaseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
@@ -135,7 +135,7 @@ abstract class AbstractApi
      *
      * @return string
      */
-    abstract protected function baseURL();
+    abstract protected function setBaseUrl();
 
 
     /**
