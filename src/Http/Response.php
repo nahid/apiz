@@ -51,11 +51,9 @@ class Response
             throw new NoResponseException();
         }
 
-
         $this->response = $response;
         $this->contents = $this->fetchContents();
         $this->makeJsonQable();
-
 
         $generator = $request->details['generator'];
         if (class_exists($generator)) {
@@ -66,39 +64,21 @@ class Response
 
     public function __invoke()
     {
-        $jsonq = new Jsonq();
-
-        return $jsonq->collect($this->parseJson(true));
+       return $this->jsonq();
     }
 
     public function __call($method, $args)
     {
-        if (method_exists($this->response, $method)) {
-            return call_user_func_array([$this->response, $method], $args);
-        }
-
         if (method_exists($this->generator, $method)) {
             return call_user_func_array([$this->generator, $method], $args);
         }
 
-        return false;
-    }
-
-    /**
-     * execute any script after getting response
-     *
-     * @param callable $fn
-     * @return null
-     */
-    public function afterResponse(callable $fn)
-    {
-        if (is_callable($fn)) {
-            return $fn($this);
+        if (method_exists($this->response, $method)) {
+            return call_user_func_array([$this->response, $method], $args);
         }
 
-        return null;
+        return false;
     }
-
 
     /**
      * Automatically parse response contents based on mime type
