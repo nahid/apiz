@@ -145,12 +145,12 @@ abstract class AbstractApi
 
     /**
      * set url prefix from code
-     *
+     * @param string $prefix
      * @return null|string
      */
-    protected function setPrefix()
+    protected function setPrefix($prefix = '')
     {
-        return null;
+        return $this->prefix = $prefix;
     }
 
     /**
@@ -458,13 +458,10 @@ abstract class AbstractApi
      */
     protected function makeMethodRequest($method, $uri)
     {
-        if (!is_null($this->setPrefix())) {
-            $this->prefix = $this->setPrefix();
-        }
+
         if (!empty($this->prefix)) {
             $this->prefix = trim($this->prefix, '/') . '/';
         }
-
         $uri = $this->prefix . trim($uri, '/');
 
         $this->mergeDefaultHeaders();
