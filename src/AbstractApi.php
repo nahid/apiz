@@ -2,6 +2,7 @@
 
 namespace Apiz;
 
+use Apiz\Http\ResponseGenerator;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -101,6 +102,13 @@ abstract class AbstractApi
     protected $parameters = [];
 
     /**
+     * contains custom response
+     *
+     * @var ResponseGenerator
+     */
+    protected $responseGenerator;
+
+    /**
      * All supported HTTP verbs
      *
      * @var array
@@ -118,7 +126,7 @@ abstract class AbstractApi
 
     public function __construct()
     {
-        $this->baseUrl = $this->setBaseUrl();
+        $this->baseUrl = $this->baseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
@@ -132,27 +140,17 @@ abstract class AbstractApi
      *
      * @return string
      */
-    abstract protected function setBaseUrl();
+    abstract protected function baseUrl();
 
 
     /**
      * set url prefix from code
-     *
+     * @param string $prefix
      * @return null|string
      */
-    protected function setPrefix()
+    protected function setPrefix($prefix = '')
     {
-        return null;
-    }
-
-    /**
-     * Set access token retrieval method
-     *
-     * @return string
-     */
-    protected function getAccessToken()
-    {
-        return '';
+        return $this->prefix = $prefix;
     }
 
     /**
@@ -176,7 +174,11 @@ abstract class AbstractApi
     }
 
 
-
+    /**
+     * @param $func
+     * @param $params
+     * @return Response
+     */
     public function __call($func, $params)
     {
         $method = strtoupper($func);
@@ -456,9 +458,6 @@ abstract class AbstractApi
      */
     protected function makeMethodRequest($method, $uri)
     {
-        if (!is_null($this->setPrefix())) {
-            $this->prefix = $this->setPrefix();
-        }
 
         if (!empty($this->prefix)) {
             $this->prefix = trim($this->prefix, '/') . '/';
@@ -471,6 +470,7 @@ abstract class AbstractApi
 
         $this->request = [
             'url' => trim($this->baseUrl, '/') . '/' . $uri,
+            'generator' => $this->responseGenerator,
             'method' => $method,
             'parameters' => $this->parameters
         ];

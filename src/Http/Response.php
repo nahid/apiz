@@ -22,6 +22,13 @@ class Response
      */
     protected $request;
 
+    /**
+     * instance of ResponseGenerator
+     *
+     * @var null|ResponseGenerator
+     */
+    protected $generator = null;
+
 
     /**
      * Store raw contents
@@ -30,50 +37,48 @@ class Response
      */
     protected $contents = '';
 
+    /**
+     * instance of JsonQ
+     *
+     * @var null|Jsonq
+     */
     protected $jsonq = null;
 
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
-
         if(is_null($response)) {
             throw new NoResponseException();
         }
-        
+
         $this->response = $response;
         $this->contents = $this->fetchContents();
         $this->makeJsonQable();
+
+        $generator = $request->details['generator'];
+        if (class_exists($generator)) {
+            $this->generator = new $generator($this);
+        }
 
     }
 
     public function __invoke()
     {
-        return $this->json();
+       return $this->jsonq();
     }
 
     public function __call($method, $args)
     {
+        if (method_exists($this->generator, $method)) {
+            return call_user_func_array([$this->generator, $method], $args);
+        }
+
         if (method_exists($this->response, $method)) {
             return call_user_func_array([$this->response, $method], $args);
         }
+
         return false;
     }
-
-    /**
-     * execute any script after getting response
-     *
-     * @param callable $fn
-     * @return null
-     */
-    public function afterResponse(callable $fn)
-    {
-        if (is_callable($fn)) {
-            return $fn($this);
-        }
-
-        return null;
-    }
-
 
     /**
      * Automatically parse response contents based on mime type
@@ -111,11 +116,17 @@ class Response
     /**
      * Get response data mime types
      *
-     * @return array
+     * @return array|null
      */
     public function getMimeTypes()
     {
-        return explode(';', $this->response->getHeader('Content-Type')[0]);
+        $content_types = $this->response->getHeader('Content-Type');
+
+        if (count($content_types) > 0) {
+            return explode(';', $content_types[0]);
+        }
+
+        return null;
     }
 
     /**
@@ -210,6 +221,9 @@ class Response
         return false;
     }
 
+    /**
+     * make Jsonq instance from response
+     */
     protected function makeJsonQable()
     {
         $json = $this->parseJson(true);
@@ -220,6 +234,11 @@ class Response
         }
     }
 
+    /**
+     * check is the response is JSON
+     *
+     * @return bool
+     */
     public function isJson()
     {
         if ($this->jsonq instanceof Jsonq) {
@@ -229,10 +248,45 @@ class Response
         return false;
     }
 
-    public function json()
+    /**
+     * get the response body size
+     *
+     * @return int
+     */
+    public function size()
+    {
+        $lengths = $this->response->getHeader('Content-Length');
+
+        if (count($lengths) > 0) {
+            return (int) $lengths[0];
+        }
+
+        return 0;
+    }
+
+    /**
+     * check is response empty
+     * 
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        if ($this->size()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * return JsonQ instance from response
+     * 
+     * @return Jsonq|null
+     */
+    public function jsonq()
     {
         if ($this->isJson()) {
-            return $this->jsonq;
+            return clone $this->jsonq;
         }
 
         return (new Jsonq())->collect([]);
