@@ -2,11 +2,7 @@
 
 namespace Apiz;
 
-use Apiz\Http\ResponseGenerator;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ServerException;
+use Apiz\Exceptions\UnknownResponseClassException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
@@ -104,9 +100,9 @@ abstract class AbstractApi
     /**
      * contains custom response
      *
-     * @var ResponseGenerator
+     * @var Response
      */
-    protected $responseGenerator;
+    protected $response = Response::class;
 
     /**
      * All supported HTTP verbs
@@ -248,7 +244,7 @@ abstract class AbstractApi
      * @param array $params
      * @return \Apiz\AbstractApi|bool
      */
-    protected function query($params = array())
+    protected function params($params = array())
     {
         if (is_array($params)) {
             $this->parameters['query'] = $params;
@@ -405,7 +401,7 @@ abstract class AbstractApi
      * @param array $options
      * @return \Apiz\AbstractApi
      */
-    protected function params($options = [])
+    protected function parameters($options = [])
     {
         $this->parameters = $options;
         return $this;
@@ -455,6 +451,7 @@ abstract class AbstractApi
      * @param string $method
      * @param string $uri
      * @return Response
+     * @throws \Exception
      */
     protected function makeMethodRequest($method, $uri)
     {
@@ -470,7 +467,6 @@ abstract class AbstractApi
 
         $this->request = [
             'url' => trim($this->baseUrl, '/') . '/' . $uri,
-            'generator' => $this->responseGenerator,
             'method' => $method,
             'parameters' => $this->parameters
         ];
@@ -480,14 +476,8 @@ abstract class AbstractApi
 
         try {
             $response = $this->client->http->send($request, $this->parameters);
-        } catch (RequestException $e) {
-            $response = $e->getResponse();
-        } catch (ClientException $e) {
-            $response = $e->getResponse();
-        } catch (BadResponseException $e) {
-            $response = $e->getResponse();
-        } catch (ServerException $e) {
-            $response = $e->getResponse();
+        } catch (\Exception $e) {
+            throw $e;
         }
 
         if (!$this->skipHttpException) {
@@ -496,8 +486,13 @@ abstract class AbstractApi
             }
         }
 
+        $responder = $this->response;
+        $resp = new $responder($response, $request);
 
-        $resp = new Response($response, $request);
+        if (is_null($this->response) || !($resp instanceof Response)) {
+            throw new UnknownResponseClassException();
+        }
+
         $this->resetObjects();
         return $resp;
     }

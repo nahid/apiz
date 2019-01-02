@@ -3,7 +3,7 @@
 namespace Apiz\Http;
 
 use Apiz\Exceptions\NoResponseException;
-use Nahid\JsonQ\Jsonq;
+use Apiz\QueryBuilder;
 
 class Response
 {
@@ -22,13 +22,6 @@ class Response
      */
     protected $request;
 
-    /**
-     * instance of ResponseGenerator
-     *
-     * @var null|ResponseGenerator
-     */
-    protected $generator = null;
-
 
     /**
      * Store raw contents
@@ -38,12 +31,19 @@ class Response
     protected $contents = '';
 
     /**
-     * instance of JsonQ
+     * instance of QueryBuilder
      *
-     * @var null|Jsonq
+     * @var null|QueryBuilder
      */
-    protected $jsonq = null;
+    protected $queries = null;
 
+    /**
+     * Response constructor.
+     *
+     * @param $response
+     * @param $request
+     * @throws NoResponseException
+     */
     public function __construct($response, $request)
     {
         $this->request = (object) $request;
@@ -53,26 +53,16 @@ class Response
 
         $this->response = $response;
         $this->contents = $this->fetchContents();
-        $this->makeJsonQable();
-
-        $generator = $request->details['generator'];
-        if (class_exists($generator)) {
-            $this->generator = new $generator($this);
-        }
-
+        $this->makeQueriable();
     }
 
     public function __invoke()
     {
-       return $this->jsonq();
+       return $this->query()->reset(null, true);
     }
 
     public function __call($method, $args)
     {
-        if (method_exists($this->generator, $method)) {
-            return call_user_func_array([$this->generator, $method], $args);
-        }
-
         if (method_exists($this->response, $method)) {
             return call_user_func_array([$this->response, $method], $args);
         }
@@ -91,7 +81,7 @@ class Response
         $contents = '';
 
         if ($type == 'application/json' || $type == 'text/json' || $type == 'application/javascript') {
-            $contents = $this->parseJson();
+            $contents = $this->parseJson(true);
         } elseif ($type == 'application/xml' || $type == 'text/xml') {
             $contents = $this->parseXml();
         } elseif ($type == 'application/x-yaml' || $type == 'text/yaml') {
@@ -196,13 +186,23 @@ class Response
         if ( $type == 'application/xml' || $type == 'text/xml' ) {
             $elem = simplexml_load_string($this->contents);
             if ( $elem !== false ) {
-                return $elem;
+                return $this->xml2array($elem);
             } else {
                 return libxml_get_errors();
             }
         }
 
         return false;
+    }
+
+    protected function xml2array($data)
+    {
+        $out = [];
+        foreach ( (array) $data as $index => $node ) {
+            $out[$index] = ( is_object ( $node ) ) ? $this->xml2array ( $node ) : $node;
+        }
+
+        return $out;
     }
 
     /**
@@ -222,30 +222,15 @@ class Response
     }
 
     /**
-     * make Jsonq instance from response
+     * make QueryBuilder instance from response
      */
-    protected function makeJsonQable()
+    protected function makeQueriable()
     {
-        $json = $this->parseJson(true);
+        $array = $this->autoParse(true);
 
-        if ($json) {
-            $jsonq = new Jsonq();
-            $this->jsonq = $jsonq->collect($json);
+        if ($array) {
+            $this->queries = (new QueryBuilder())->collect($array);
         }
-    }
-
-    /**
-     * check is the response is JSON
-     *
-     * @return bool
-     */
-    public function isJson()
-    {
-        if ($this->jsonq instanceof Jsonq) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -279,16 +264,22 @@ class Response
     }
 
     /**
-     * return JsonQ instance from response
-     * 
-     * @return Jsonq|null
+     * return QueryBuilder instance from response
+     *
+     * @param $node
+     * @return QueryBuilder|null
+     * @throws \Exception
      */
-    public function jsonq()
+    public function query($node = null)
     {
-        if ($this->isJson()) {
-            return clone $this->jsonq;
+        if (!$this->queries instanceof QueryBuilder) {
+            $this->queries = new QueryBuilder();
         }
 
-        return (new Jsonq())->collect([]);
+        if (!is_null($node)) {
+            $this->queries->from($node);
+        }
+
+        return $this->queries;
     }
 }
