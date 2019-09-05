@@ -3,12 +3,12 @@
     "description": "Apiz is a boilerplate for REST API manager",
     "type": "php",
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=5.5.9 | >=7.1",
         "ext-curl": "*",
         "guzzlehttp/guzzle": "^6.3",
         "ext-xmlwriter" : "*",
         "lib-libxml" : ">=2.6.20",
-        "nahid/qarray": "dev-master"
+        "nahid/qarray": "^1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2",
@@ -23,10 +23,11 @@
     ],
     "autoload": {
       "psr-4": {
-        "Apiz\\": "src/"
+            "Apiz\\": "src/"
       },
       "files": [
       ]
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
