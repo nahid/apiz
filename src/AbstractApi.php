@@ -7,6 +7,17 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
 
+/**
+ * Class AbstractApi
+ * @package Apiz
+ *
+ * @method \Apiz\Http\Response post(string $uri)
+ * @method \Apiz\Http\Response get(string $uri)
+ * @method \Apiz\Http\Response put(string $uri)
+ * @method \Apiz\Http\Response patch(string $uri)
+ * @method \Apiz\Http\Response delete(string $uri)
+ * @method \Apiz\Http\Response options(string $uri)
+ */
 abstract class AbstractApi
 {
     /**
@@ -487,6 +498,9 @@ abstract class AbstractApi
         }
 
         $responder = $this->response;
+        /**
+         * @var $resp Response
+         */
         $resp = new $responder($response, $request);
 
         if (is_null($this->response) || !($resp instanceof Response)) {
