@@ -100,25 +100,9 @@ abstract class AbstractApi
     /**
      * contains custom response
      *
-     * @var Response
+     * @var $response
      */
     protected $response = Response::class;
-
-    /**
-     * All supported HTTP verbs
-     *
-     * @var array
-     */
-    private $requestMethods = [
-        'GET',
-        'POST',
-        'PUT',
-        'DELETE',
-        'HEAD',
-        'OPTIONS',
-        'PATCH'
-    ];
-
 
     public function __construct()
     {
@@ -171,19 +155,73 @@ abstract class AbstractApi
 
 
     /**
-     * @param $func
-     * @param $params
+     * @param $uri
      * @return Response
+     * @throws \Exception
      */
-    public function __call($func, $params)
+    public function get($uri)
     {
-        $method = strtoupper($func);
-        if (in_array($method, $this->requestMethods)) {
-            $parameters[] = $method;
-            $parameters[] = $params[0];
-            $content = call_user_func_array([$this, 'makeMethodRequest'], $parameters);
-            return $content;
-        }
+        return $this->makeMethodRequest('GET', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function post($uri)
+    {
+        return $this->makeMethodRequest('POST', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function put($uri)
+    {
+        return $this->makeMethodRequest('PUT', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function patch($uri)
+    {
+        return $this->makeMethodRequest('PATCH', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function delete($uri)
+    {
+        return $this->makeMethodRequest('DELETE', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function head($uri)
+    {
+        return $this->makeMethodRequest('HEAD', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws \Exception
+     */
+    public function options($uri)
+    {
+        return $this->makeMethodRequest('OPTIONS', $uri);
     }
 
 
@@ -321,6 +359,7 @@ abstract class AbstractApi
             $this->parameters['json'] = $params;
             return $this;
         }
+
         return false;
     }
 
@@ -487,6 +526,10 @@ abstract class AbstractApi
         }
 
         $responder = $this->response;
+
+        /**
+         * @var $this->response $resp
+         */
         $resp = new $responder($response, $request);
 
         if (is_null($this->response) || !($resp instanceof Response)) {

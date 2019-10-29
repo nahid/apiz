@@ -3,12 +3,14 @@
     "description": "Apiz is a boilerplate for REST API manager",
     "type": "php",
     "require": {
-        "php": ">=5.5.9 | >=7.1",
+        "php": ">=5.5.9 | >=7.0",
         "ext-curl": "*",
-        "guzzlehttp/guzzle": "^6.3",
+        "guzzlehttp/guzzle": "^6.4",
         "ext-xmlwriter" : "*",
+        "ext-json": "*",
         "lib-libxml" : ">=2.6.20",
-        "nahid/qarray": "^1.1"
+        "nahid/qarray": "^1.1",
+        "guzzlehttp/psr7": "^1.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2",
