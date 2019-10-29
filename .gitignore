@@ -5,3 +5,4 @@
 .php_cs.cache
 composer.lock
 index.php
+api
