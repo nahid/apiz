@@ -10,13 +10,6 @@ use Apiz\Http\Response;
 /**
  * Class AbstractApi
  * @package Apiz
- *
- * @method \Apiz\Http\Response post(string $uri)
- * @method \Apiz\Http\Response get(string $uri)
- * @method \Apiz\Http\Response put(string $uri)
- * @method \Apiz\Http\Response patch(string $uri)
- * @method \Apiz\Http\Response delete(string $uri)
- * @method \Apiz\Http\Response options(string $uri)
  */
 abstract class AbstractApi
 {
