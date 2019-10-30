@@ -11,7 +11,7 @@
         "ext-json": "*",
         "ext-yaml": "*",
         "lib-libxml" : ">=2.6.20",
-        "nahid/qarray": "^1.1",
+        "nahid/qarray": "^1.2",
         "guzzlehttp/psr7": "^1.6"
     },
     "require-dev": {
