@@ -6,8 +6,10 @@
         "php": ">=5.5.9 | >=7.0",
         "ext-curl": "*",
         "guzzlehttp/guzzle": "^6.4",
-        "ext-xmlwriter" : "*",
+        "ext-libxml" : "*",
+        "ext-simplexml" : "*",
         "ext-json": "*",
+        "ext-yaml": "*",
         "lib-libxml" : ">=2.6.20",
         "nahid/qarray": "^1.1",
         "guzzlehttp/psr7": "^1.6"
