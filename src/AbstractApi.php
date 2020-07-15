@@ -4,10 +4,7 @@ namespace Apiz;
 
 use Apiz\Exceptions\UnknownResponseClassException;
 use Apiz\Http\AbstractClient;
-use Apiz\Http\ClientManager;
 use Apiz\Http\Clients\GuzzleClient;
-use GuzzleHttp\Psr7\Request as Psr7Request;
-use Apiz\Http\Request;
 use Apiz\Http\Response;
 
 /**
