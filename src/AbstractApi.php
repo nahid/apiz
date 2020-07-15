@@ -5,6 +5,7 @@ namespace Apiz;
 use Apiz\Exceptions\UnknownResponseClassException;
 use Apiz\Http\AbstractClient;
 use Apiz\Http\ClientManager;
+use Apiz\Http\Clients\GuzzleClient;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
@@ -117,9 +118,13 @@ abstract class AbstractApi
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
 
-        $this->client = ClientManager::getClient();
+        $this->client = $this->getClient();
     }
 
+    protected function getClient()
+    {
+        return new GuzzleClient();
+    }
 
     /**
      * set base URL for guzzle client
