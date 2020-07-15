@@ -1,6 +1,6 @@
 # APIZ
 
-APIZ is a PHP API Client Development Kit. You can easily handle all kind of JSON api response by using this package.
+APIZ is a PHP API Client Development Kit. You can easily handle all kinds of JSON API responses using this package.
 
 ## Requirements
 
@@ -14,11 +14,11 @@ composer require nahid/apiz
 
 ## Configurations
 
-There are no extra configuration for this package.
+There are no extra configurations for this package.
 
 ## Usage
 
-Lets make a api service service for https://reqres.in.
+Lets make an API service for https://reqres.in.
 
 Suppose you have to make several api service for your package. Your service directory is
 `app/Services`. Now we are develop a service for https://reqres.in and make a class file `ReqResApiService.php`
@@ -31,16 +31,16 @@ use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
-    protected function setBaseUrl()
+    protected function baseUrl()
     {
         return 'https://reqres.in';
     }
 }
 ```
 
-`AbstractApi` is a abstract class where `setBaseUrl()` is a abstract method.
+`baseUrl()` is an abstract method of the `AbstractApi` class. You need to override this method to set the proper base URL for your API.
 
-To get API response from this url they've a prefix 'api' so first we set it with protected property `$prefix`
+Few APIs have a common prefix. Like, here `reqres.in` have a prefix 'api' on every endpoint. So, first we set it with protected property `$prefix`.
 
 ```php
 namespace App\Services;
@@ -51,14 +51,14 @@ class ReqResApiService extends AbstractApi
 {
     protected $prefix = 'api';
 
-    protected function setBaseUrl()
+    protected function baseUrl()
     {
         return 'https://reqres.in';
     }
 }
 ```
 
-Now we make a method for get all users info
+Now let's make a method to get all users info.
 
 ```php
 namespace App\Services;
@@ -67,33 +67,37 @@ use Apiz\AbstractApi;
 
 class ReqResApiService extends AbstractApi
 {
-    protected $prefix = 'api';
+    protected $prefix = 'api/';
 
-    protected function setBaseUrl()
+    protected function baseUrl()
     {
         return 'https://reqres.in';
     }
 
-    public function allUsers()
+    public function getAllUsers()
     {
-        $users = $this->get('/users');
+        $response = $this->get('users');
 
-        if ($users->getStatusCode() == 200) {
-            return $users;
+        if ($response->getStatusCode() === 200) {
+            return $response;
         }
 
-        return false;
+        return [];
     }
 }
 ```
+See, how easy it is to manage an API now!
 
-We use GuzzleHttp for this package. So you can easily use all HTTP verbs
- as a magic method. Its totally hassle free. with our all response we return three objects `response`, `request` and `contents`.
- You can access all Guzzle response method from this response. We are using magic method to access it from response.
+You can easily use all HTTP verbs as a magic method. Its totally hassle free. 
+
+With all of the responses we are returning three objects `response`, `request` and `contents`. We are using `GuzzleHttp` client for this package. That means, you can access all the Guzzle response methods from this response. We are using magic method to access it from the response.
 
 #### Output
 
 ![Response](http://imgur.com/IgI0vKb.png?1 "Response")
+
+
+Let's see another example.
 
 ## Post Request with Form Params
 
@@ -101,18 +105,18 @@ We use GuzzleHttp for this package. So you can easily use all HTTP verbs
 ```php
 public function createUser(array $data)
 {
-    $user = $this->formParams($data)
-            ->post('/create');
+    $response = $this->formParams($data)
+            ->post('create');
 
-    if ($user->getStatusCode() == 201) {
-        return $user;
+    if ($response->getStatusCode() === 201) {
+        return $response;
     }
 
-    return false;
+    return null;
 }
 ```
 
-## List of Parameter Options
+## List of Available methods
 
 - `formParams(array $params)`
 - `headers(array $params)`
@@ -124,7 +128,7 @@ public function createUser(array $data)
 - `file(string $name, string $file_path, string $filename [, array $headers])`
 - `params(array $params)`
 
-## List of HTTP verbs
+## List of methods for common HTTP verbs
 
 - `get(string $uri)`
 - `post(string $uri)`
