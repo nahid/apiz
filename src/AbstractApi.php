@@ -92,7 +92,7 @@ abstract class AbstractApi
      *
      * @var Request
      */
-    protected $client;
+    protected $http;
 
     /**
      * Request parameters
@@ -108,14 +108,20 @@ abstract class AbstractApi
      */
     protected $response = Response::class;
 
-    public function __construct()
+    public function __construct(Request $request = null)
     {
         $this->baseUrl = $this->baseUrl();
 
         $this->defaultHeaders = $this->setDefaultHeaders();
         $this->defaultQueries = $this->setDefaultQueries();
 
-        $this->client = new Request($this->baseUrl, $this->options);
+        if (is_null($request)) {
+            $opts = ['base_uri' => $this->baseUrl] + $this->options;
+            $request = new Request(null, $opts);
+        }
+
+        $this->http = $request;
+
     }
 
 
@@ -518,7 +524,7 @@ abstract class AbstractApi
         $request->details = $this->request;
 
         try {
-            $response = $this->client->http->send($request, $this->parameters);
+            $response = $this->http->client->send($request, $this->parameters);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -562,7 +568,7 @@ abstract class AbstractApi
      */
     public function getGuzzleClient()
     {
-        return $this->client->http;
+        return $this->http->client;
     }
 
     /**

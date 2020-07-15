@@ -35,5 +35,10 @@
       ]
     },
     "minimum-stability": "dev",
+    "autoload-dev": {
+        "psr-4": {
+            "Api\\" : "api/"
+        }
+    },
     "prefer-stable": true
 }

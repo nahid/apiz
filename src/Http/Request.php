@@ -11,12 +11,18 @@ class Request
      *
      * @var Client
      */
-    public $http;
+    public $client;
 
-    public function __construct($base_url, $options  = [])
+    public function __construct(Client $client = null, $opts = [])
     {
-        $default = ['base_uri' => $base_url, 'timeout' => 30.0];
-        $opts = array_merge($default, $options);
-        $this->http = new Client($opts);
+        if (!isset($opts['timeout'])) {
+            $opts['timeout'] = 30.0;
+        }
+
+        if (is_null($client)) {
+            $client = new Client($opts);
+        }
+
+        $this->client = $client;
     }
 }
