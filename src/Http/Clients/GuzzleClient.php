@@ -3,6 +3,7 @@
 namespace Apiz\Http\Clients;
 
 use Apiz\Http\AbstractClient;
+use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
@@ -35,6 +36,6 @@ class GuzzleClient extends AbstractClient
 
     public function send(...$args)
     {
-        return $this->send(...$args);
+        return (new Client())->send(... $args);
     }
 }

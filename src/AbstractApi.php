@@ -87,6 +87,9 @@ abstract class AbstractApi
      */
     protected $skipDefaultQueries = false;
 
+
+    protected $preHookFn = null;
+
     /**
      * The main client to do all the magic
      *
@@ -107,6 +110,14 @@ abstract class AbstractApi
      * @var $response
      */
     protected $response = Response::class;
+    /**
+     * @var callable
+     */
+    protected $successHookFn = null;
+    /**
+     * @var callable
+     */
+    protected $failsHookFn = null;
 
     public function __construct()
     {
@@ -159,6 +170,41 @@ abstract class AbstractApi
     protected function setDefaultQueries()
     {
         return [];
+    }
+
+    protected function preHook($request)
+    {
+        return;
+    }
+
+
+    protected function successHook($response, $request)
+    {
+        return;
+    }
+
+
+    protected function failsHook($exception)
+    {
+        return;
+    }
+
+    protected function bindPreHook(callable $fn)
+    {
+        $this->preHookFn = $fn;
+        return $this;
+    }
+
+    protected function bindSuccessHook(callable $fn)
+    {
+        $this->successHookFn = $fn;
+        return $this;
+    }
+
+    protected function bindFailsHook(callable $fn)
+    {
+        $this->failsHookFn = $fn;
+        return $this;
     }
 
 
@@ -518,12 +564,39 @@ abstract class AbstractApi
             'parameters' => $this->parameters
         ];
 
-        $request = $this->client->getRequest([$method, $uri]);
-        $request->details = $this->request;
+        $url = trim($this->baseUrl, '/') . '/' . $uri;
+
+        $request = $this->client->getRequest($method, $url);
+
+        if (is_null($this->preHookFn)) {
+            $this->preHook($request);
+        }
+
+        if(is_callable($this->preHookFn)) {
+            $preHookFn = $this->preHookFn;
+            $preHookFn($request);
+        }
 
         try {
             $response = $this->client->send($request, $this->parameters);
+
+            if (is_null($this->successHookFn)) {
+                $this->successHook($response, $request);
+            }
+
+            if(is_callable($this->successHookFn)) {
+                $successHookFn = $this->successHookFn;
+                $successHookFn($response, $request);
+            }
         } catch (\Exception $e) {
+            if (is_null($this->failsHookFn)) {
+                $this->failsHook($e);
+            }
+
+            if(is_callable($this->failsHookFn)) {
+                $failsHookFn= $this->failsHookFn;
+                $failsHookFn($e);
+            }
             throw $e;
         }
 
