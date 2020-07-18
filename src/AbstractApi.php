@@ -189,19 +189,19 @@ abstract class AbstractApi
         return;
     }
 
-    protected function bindPreHook(callable $fn)
+    public function bindPreHook(callable $fn)
     {
         $this->preHookFn = $fn;
         return $this;
     }
 
-    protected function bindSuccessHook(callable $fn)
+    public function bindSuccessHook(callable $fn)
     {
         $this->successHookFn = $fn;
         return $this;
     }
 
-    protected function bindFailsHook(callable $fn)
+    public function bindFailsHook(callable $fn)
     {
         $this->failsHookFn = $fn;
         return $this;
