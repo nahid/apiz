@@ -6,12 +6,17 @@ use Apiz\AbstractApi;
 
 class AwesomeAPI extends AbstractApi
 {
-    public function __construct()
+    /**
+     * @inheritDoc
+     */
+    protected function getBaseURL()
     {
-        parent::__construct();
+        return 'https://reqres.in';
+    }
 
-        $this->setBaseURL('https://reqres.in');
-        $this->setPrefix('api');
+    protected function getPrefix()
+    {
+        return 'api';
     }
 
     public function getAllUsers()

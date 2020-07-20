@@ -11,8 +11,18 @@ abstract class BaseAPI extends AbstractApi
         parent::__construct();
 
         $this->setClient(new MyAwesomeClient());
+    }
 
-        $this->setBaseURL('https://reqres.in');
-        $this->setPrefix('api');
+    /**
+     * @inheritDoc
+     */
+    protected function getBaseURL()
+    {
+        return 'https://reqres.in';
+    }
+
+    protected function getPrefix()
+    {
+        return 'api';
     }
 }
