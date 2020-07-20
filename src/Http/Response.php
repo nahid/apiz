@@ -4,6 +4,8 @@ namespace Apiz\Http;
 
 use Apiz\Exceptions\NoResponseException;
 use Apiz\QueryBuilder;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class Response
 {
@@ -90,11 +92,11 @@ class Response
     /**
      * Response constructor.
      *
-     * @param $response
-     * @param $request
+     * @param Request $request
+     * @param ResponseInterface $response
      * @throws NoResponseException
      */
-    public function __construct($response, $request)
+    public function __construct(Request $request, ResponseInterface $response)
     {
         $this->request = (object) $request;
         if(is_null($response)) {

@@ -8,6 +8,8 @@ use Apiz\Http\Request;
 use Apiz\Http\Response;
 use Apiz\Traits\Hookable;
 use Exception;
+use Psr\Http\Message\ResponseInterface;
+use Apiz\Exceptions\InvalidResponseClassException;
 
 /**
  * Class AbstractApi
@@ -39,11 +41,11 @@ abstract class AbstractApi
     protected $request;
 
     /**
-     * contains custom response
+     * response class name
      *
-     * @var Response
+     * @var string
      */
-    protected $response;
+    protected $response = Response::class;
 
     /**
      * AbstractApi constructor.
@@ -82,6 +84,32 @@ abstract class AbstractApi
     protected function setClient(AbstractClient $client)
     {
         $this->request->setClient($client);
+    }
+
+    /**
+     * @param Request $request
+     * @param ResponseInterface $response
+     * @return Response
+     * @throws InvalidResponseClassException
+     */
+    protected function makeResponse(Request $request, ResponseInterface $response)
+    {
+        $responseClass = $this->response;
+        $apizResponse = new $responseClass($request, $response);
+
+        if (!($apizResponse instanceof Response)) {
+            throw new InvalidResponseClassException();
+        }
+
+        return $apizResponse;
+    }
+
+    /**
+     * @param string $responseClass
+     */
+    protected function setResponseClass($responseClass)
+    {
+        $this->response = $responseClass;
     }
 
     /**
@@ -371,13 +399,12 @@ abstract class AbstractApi
     {
         $this->executePreHooks($this->request);
 
-        $responder = null;
+        $response = null;
         try {
-            $response = $this->request->send($method, $uri);
+            $clientResponse = $this->request->send($method, $uri);
+            $response = $this->makeResponse($this->request, $clientResponse);
 
-            $responder = new Response($response, $this->request);
-
-            $this->executeSuccessHooks($response, $this->request);
+            $this->executeSuccessHooks($clientResponse, $this->request);
         } catch (Exception $e) {
             $this->executeFailHooks($e);
             throw $e;
@@ -385,7 +412,7 @@ abstract class AbstractApi
             $this->resetObjects();
         }
 
-        return $responder;
+        return $response;
     }
 
     /**
