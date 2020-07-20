@@ -2,6 +2,7 @@
 
 namespace Apiz\Http;
 
+use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -26,8 +27,9 @@ abstract class AbstractClient
     /**
      * @param array $args
      * @return ResponseInterface
+     * @throws Exception
      */
-    protected abstract function send(...$args);
+    public abstract function send(...$args);
 
     /**
      * @param mixed ...$args
@@ -60,5 +62,20 @@ abstract class AbstractClient
         $class = $this->getUriClass();
 
         return new $class(...$args);
+    }
+
+    /**
+     * @param ResponseInterface $response
+     * @return bool
+     */
+    public function isValidResponse(ResponseInterface $response)
+    {
+        $responseClass = $this->getResponseClass();
+
+        if ($response instanceof $responseClass) {
+            return true;
+        }
+
+        return false;
     }
 }
