@@ -7,6 +7,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 
 class GuzzleClient extends AbstractClient
 {
@@ -34,8 +36,15 @@ class GuzzleClient extends AbstractClient
         return Uri::class;
     }
 
+    /**
+     * @param mixed ...$args
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
     public function send(...$args)
     {
-        return (new Client())->send(... $args);
+        $client = new Client();
+
+        return $client->send(... $args);
     }
 }
