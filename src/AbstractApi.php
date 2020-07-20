@@ -58,6 +58,7 @@ abstract class AbstractApi
         }
 
         $this->setBaseURL($this->getBaseURL());
+        $this->setPrefix($this->getPrefix());
     }
 
     /**
@@ -70,9 +71,17 @@ abstract class AbstractApi
      *
      * @param string $url
      */
-    protected function setBaseURL($url)
+    private function setBaseURL($url)
     {
         $this->request->setBaseURL($url);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getPrefix()
+    {
+        return '';
     }
 
     /**
@@ -80,7 +89,7 @@ abstract class AbstractApi
      *
      * @param string $prefix
      */
-    protected function setPrefix($prefix)
+    private function setPrefix($prefix)
     {
         $this->request->setPrefix($prefix);
     }
