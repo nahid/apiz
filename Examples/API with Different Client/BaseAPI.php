@@ -6,8 +6,13 @@ use Apiz\AbstractApi;
 
 abstract class BaseAPI extends AbstractApi
 {
-    protected function getClient()
+    public function __construct()
     {
-        return MyAwesomeClient();
+        parent::__construct();
+
+        $this->setClient(new MyAwesomeClient());
+
+        $this->setBaseURL('https://reqres.in');
+        $this->setPrefix('api');
     }
 }

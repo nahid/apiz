@@ -4,11 +4,13 @@ namespace Examples;
 
 class ExampleAPI extends BaseAPI
 {
-    /**
-     * @inheritDoc
-     */
-    protected function baseUrl()
+    public function getAllUsers()
     {
-        return 'example.api';
+        return $this->get('users')->getContents();
+    }
+
+    public function createUser(array $data)
+    {
+        return $this->json($data)->post('users')->getContents();
     }
 }
