@@ -47,10 +47,13 @@ abstract class AbstractApi
 
     /**
      * AbstractApi constructor.
+     * @param Request|null $request
      */
-    public function __construct()
+    public function __construct(Request $request = null)
     {
-        $this->request = new Request(new GuzzleClient());
+        if (!$request) {
+            $this->request = new Request(new GuzzleClient());
+        }
     }
 
     /**
