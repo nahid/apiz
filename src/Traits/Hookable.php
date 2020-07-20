@@ -79,17 +79,17 @@ trait Hookable
         return $this;
     }
 
-    private function preHook($request)
+    protected function preHook($request)
     {
         return;
     }
 
-    private function successHook($response, $request)
+    protected function successHook($response, $request)
     {
         return;
     }
 
-    private function failsHook($exception)
+    protected function failsHook($exception)
     {
         return;
     }

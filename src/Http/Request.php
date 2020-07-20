@@ -156,7 +156,7 @@ class Request
      *
      * @param array $headers
      */
-    protected function setDefaultHeaders($headers)
+    public function setDefaultHeaders($headers)
     {
         $this->defaultHeaders = $headers;
     }
@@ -176,7 +176,7 @@ class Request
      *
      * @param array $queries
      */
-    protected function setDefaultQueries($queries)
+    public function setDefaultQueries($queries)
     {
         $this->defaultQueries = $queries;
     }
@@ -227,7 +227,7 @@ class Request
      * @param bool $action
      * @return Request
      */
-    protected function skipDefaultHeaders($action = true)
+    public function skipDefaultHeaders($action = true)
     {
         $this->shouldSkipDefaultHeader = $action;
 
@@ -238,7 +238,7 @@ class Request
      * @param bool $action
      * @return Request
      */
-    protected function skipDefaultQueries($action = true)
+    public function skipDefaultQueries($action = true)
     {
         $this->shouldSkipDefaultQueries = $action;
 

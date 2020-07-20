@@ -4,65 +4,14 @@ namespace Apiz\Http;
 
 use Apiz\Exceptions\NoResponseException;
 use Apiz\QueryBuilder;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class Response
 {
     /**
-     * All HTTP status code comes/copy from symfony http-foundation
-     */
-    const HTTP_CONTINUE = 100;
-    const HTTP_SWITCHING_PROTOCOLS = 101;
-    const HTTP_PROCESSING = 102;            // RFC2518
-    const HTTP_EARLY_HINTS = 103;           // RFC8297
-    const HTTP_OK = 200;
-    const HTTP_CREATED = 201;
-    const HTTP_ACCEPTED = 202;
-    const HTTP_NON_AUTHORITATIVE_INFORMATION = 203;
-    const HTTP_NO_CONTENT = 204;
-    const HTTP_RESET_CONTENT = 205;
-    const HTTP_PARTIAL_CONTENT = 206;
-    const HTTP_MULTI_STATUS = 207;          // RFC4918
-    const HTTP_ALREADY_REPORTED = 208;      // RFC5842
-    const HTTP_IM_USED = 226;               // RFC3229
-    const HTTP_MULTIPLE_CHOICES = 300;
-    const HTTP_MOVED_PERMANENTLY = 301;
-    const HTTP_FOUND = 302;
-    const HTTP_SEE_OTHER = 303;
-    const HTTP_NOT_MODIFIED = 304;
-    const HTTP_USE_PROXY = 305;
-    const HTTP_RESERVED = 306;
-    const HTTP_TEMPORARY_REDIRECT = 307;
-    const HTTP_PERMANENTLY_REDIRECT = 308;  // RFC7238
-    const HTTP_BAD_REQUEST = 400;
-    const HTTP_UNAUTHORIZED = 401;
-    const HTTP_PAYMENT_REQUIRED = 402;
-    const HTTP_FORBIDDEN = 403;
-    const HTTP_NOT_FOUND = 404;
-    const HTTP_METHOD_NOT_ALLOWED = 405;
-    const HTTP_NOT_ACCEPTABLE = 406;
-    const HTTP_PROXY_AUTHENTICATION_REQUIRED = 407;
-    const HTTP_REQUEST_TIMEOUT = 408;
-    const HTTP_CONFLICT = 409;
-    const HTTP_GONE = 410;
-    const HTTP_LENGTH_REQUIRED = 411;
-    const HTTP_PRECONDITION_FAILED = 412;
-    const HTTP_REQUEST_ENTITY_TOO_LARGE = 413;
-    const HTTP_REQUEST_URI_TOO_LONG = 414;
-    const HTTP_UNSUPPORTED_MEDIA_TYPE = 415;
-    const HTTP_REQUESTED_RANGE_NOT_SATISFIABLE = 416;
-    const HTTP_EXPECTATION_FAILED = 417;
-    const HTTP_I_AM_A_TEAPOT = 418;                                               // RFC2324
-    const HTTP_MISDIRECTED_REQUEST = 421;                                         // RFC7540
-    const HTTP_UNPROCESSABLE_ENTITY = 422;                                        // RFC4918
-    const HTTP_LOCKED = 423;                                                      // RFC4918
-    const HTTP_FAILED_DEPENDENCY = 424;
-
-    /**
      * store response object
      *
-     * @var object
+     * @var ResponseInterface
      */
     protected $response;
 
@@ -98,28 +47,19 @@ class Response
      */
     public function __construct(Request $request, ResponseInterface $response)
     {
-        $this->request = (object) $request;
+        $this->request = $request;
         if(is_null($response)) {
             throw new NoResponseException();
         }
 
         $this->response = $response;
         $this->contents = $this->fetchContents();
-        $this->makeQueriable();
+        $this->makeQueryable();
     }
 
     public function __invoke()
     {
        return $this->query()->reset(null, true);
-    }
-
-    public function __call($method, $args)
-    {
-        if (method_exists($this->response, $method)) {
-            return call_user_func_array([$this->response, $method], $args);
-        }
-
-        return false;
     }
 
     /**
@@ -152,7 +92,37 @@ class Response
      */
     private function fetchContents()
     {
-        return $this->response->getBody()->getContents();
+        return $this->getBody()->getContents();
+    }
+
+    public function getStatusCode()
+    {
+        return $this->response->getStatusCode();
+    }
+
+    public function getHeaders()
+    {
+        return $this->response->getHeaders();
+    }
+
+    public function getHeader($name)
+    {
+        return $this->response->getHeader($name);
+    }
+
+    public function hasHeader($name)
+    {
+        return $this->response->hasHeader($name);
+    }
+
+    public function getHeaderLine($name)
+    {
+        return $this->response->getHeaderLine($name);
+    }
+
+    public function getBody()
+    {
+        return $this->response->getBody();
     }
 
     /**
@@ -179,8 +149,7 @@ class Response
     public function getMimeType()
     {
         $header = $this->getMimeTypes();
-        $contentType = $header[0];
-        return $contentType;
+        return $header[0];
     }
 
     /**
@@ -196,9 +165,9 @@ class Response
     /**
      * Get requests details
      *
-     * @return object
+     * @return Request
      */
-    public function getRequests()
+    public function getRequest()
     {
         return $this->request;
     }
@@ -276,7 +245,7 @@ class Response
     /**
      * make QueryBuilder instance from response
      */
-    protected function makeQueriable()
+    protected function makeQueryable()
     {
         $array = $this->autoParse();
 
@@ -292,7 +261,7 @@ class Response
      */
     public function size()
     {
-        $lengths = $this->response->getHeader('Content-Length');
+        $lengths = $this->getHeader('Content-Length');
 
         if (count($lengths) > 0) {
             return (int) $lengths[0];

@@ -155,6 +155,49 @@ abstract class AbstractApi
     }
 
     /**
+     * get default headers that will automatically bind with every request headers
+     *
+     * @return array
+     */
+    protected function defaultHeaders()
+    {
+        return [];
+    }
+
+    /**
+     * get default queries that will automatically bind with every request
+     *
+     * @return array
+     */
+    protected function defaultQueries()
+    {
+        return [];
+    }
+
+    /**
+     * @param bool $action
+     * @return self
+     */
+    protected function skipDefaultHeaders($action = true)
+    {
+        $this->request->skipDefaultHeaders($action);
+
+        return $this;
+    }
+
+    /**
+     * @param bool $action
+     * @return self
+     */
+    protected function skipDefaultQueries($action = true)
+    {
+        $this->request->skipDefaultQueries($action);
+
+        return $this;
+    }
+
+
+    /**
      * set query parameters
      *
      * @param array $params
@@ -302,15 +345,15 @@ abstract class AbstractApi
     /**
      * skip default http exceptions from request
      *
-     * @param array $exceptions
+     * @param array $codes
      * @return AbstractApi
      */
-    protected function skipHttpExceptions(array $exceptions = [])
+    protected function skipHttpExceptions(array $codes = [])
     {
-        if (!empty($exceptions)) {
+        if (!empty($codes)) {
             $this->shouldSkipHttpException = true;
 
-            foreach ($exceptions as $code) {
+            foreach ($codes as $code) {
                 unset($this->httpExceptions[$code]);
             }
         }
@@ -417,8 +460,17 @@ abstract class AbstractApi
 
         $response = null;
         try {
+            $this->request->setDefaultHeaders($this->defaultHeaders());
+            $this->request->setDefaultQueries($this->defaultQueries());
+
             $clientResponse = $this->request->send($method, $uri);
             $response = $this->makeResponse($this->request, $clientResponse);
+
+            if (!$this->shouldSkipHttpException) {
+                if ($response instanceof Response) {
+                    new HttpExceptionReceiver($response, $this->httpExceptions);
+                }
+            }
 
             $this->executeSuccessHooks($clientResponse, $this->request);
         } catch (Exception $e) {

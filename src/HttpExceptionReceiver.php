@@ -2,7 +2,8 @@
 
 namespace Apiz;
 
-use GuzzleHttp\Psr7\Response;
+
+use Apiz\Http\Response;
 
 class HttpExceptionReceiver
 {
