@@ -56,7 +56,14 @@ abstract class AbstractApi
         if (!$request) {
             $this->request = new Request(new GuzzleClient());
         }
+
+        $this->setBaseURL($this->getBaseURL());
     }
+
+    /**
+     * @return string
+     */
+    abstract protected function getBaseURL();
 
     /**
      * set Base URL
