@@ -34,6 +34,6 @@
       "files": [
       ]
     },
-    "minimum-stability": "alpha",
+    "minimum-stability": "dev",
     "prefer-stable": false
 }
