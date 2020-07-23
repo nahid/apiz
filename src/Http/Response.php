@@ -149,7 +149,11 @@ class Response
     public function getMimeType()
     {
         $header = $this->getMimeTypes();
-        return $header[0];
+        if ($header) {
+            return $header[0];
+        }
+
+        return null;
     }
 
     /**
