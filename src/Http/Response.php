@@ -264,4 +264,12 @@ class Response
 
         return $this->queryBuilder;
     }
+
+    /**
+     * @return QueryEngine
+     */
+    public function reset()
+    {
+        return $this->queryBuilder->reset(null, true);
+    }
 }
