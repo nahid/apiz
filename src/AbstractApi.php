@@ -108,7 +108,7 @@ abstract class AbstractApi
      * @return Response
      * @throws InvalidResponseClassException
      */
-    protected function makeResponse(Request $request, ResponseInterface $response)
+    private function makeResponse(Request $request, ResponseInterface $response)
     {
         $responseClass = $this->response;
         $apizResponse = new $responseClass($request, $response);
@@ -159,7 +159,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function defaultHeaders()
+    protected function getDefaultHeaders()
     {
         return [];
     }
@@ -169,7 +169,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function defaultQueries()
+    protected function getDefaultQueries()
     {
         return [];
     }
@@ -454,14 +454,14 @@ abstract class AbstractApi
      * @return Response
      * @throws Exception
      */
-    protected function makeMethodRequest($method, $uri)
+    private function makeMethodRequest($method, $uri)
     {
         $this->executePreHooks($this->request);
 
         $response = null;
         try {
-            $this->request->setDefaultHeaders($this->defaultHeaders());
-            $this->request->setDefaultQueries($this->defaultQueries());
+            $this->request->setDefaultHeaders($this->getDefaultHeaders());
+            $this->request->setDefaultQueries($this->getDefaultQueries());
 
             $clientResponse = $this->request->send($method, $uri);
             $response = $this->makeResponse($this->request, $clientResponse);
