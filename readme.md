@@ -1,6 +1,6 @@
 # APIZ
 
-APIZ is a PHP API Client Development Kit. You can easily handle all kinds of JSON API responses using this package.
+APIZ is a PHP API Client Development Kit, it helps you to manage HTTP API call with OOP way. You can easily handle and isolate to all kinds of RestAPI call and their responses by using this package.
 
 ## Requirements
 
@@ -112,6 +112,22 @@ public function createUser(array $data)
     return null;
 }
 ```
+
+## Default Headers
+
+Sometimes we need to bind some headers with all the requests. Suppose if you want to deal with Github API you have to send `access_token` in every request with the headers.
+So APIZ provide you a handy way to deal with this problem. Just override `AbstractApi::getDefaultHeaders()`.
+
+
+```php
+protected function getDefaultHeaders()
+{
+    return [
+        'access_token' => $_ENV['GITHUB_ACCESS_TOKEN'],
+    ];
+}
+```
+
 
 You can easily use all HTTP verbs like `get`, `post` etc. It's totally hassle free. 
 See more examples in the [Examples Folder](./Examples).
