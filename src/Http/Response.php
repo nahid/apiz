@@ -2,10 +2,13 @@
 
 namespace Apiz\Http;
 
+use Exception;
+use Nahid\QArray\QueryEngine;
 use Apiz\Exceptions\NoResponseException;
 use Apiz\QueryBuilder;
 use Apiz\Utilities\Parser;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 class Response
 {
@@ -16,28 +19,26 @@ class Response
      */
     protected $response;
 
-
     /**
      * Store request details
      *
-     * @var object
+     * @var Request
      */
     protected $request;
-
 
     /**
      * Store raw contents
      *
      * @var mixed|string
      */
-    protected $contents = '';
+    protected $rawContent = '';
 
     /**
      * instance of QueryBuilder
      *
      * @var null|QueryBuilder
      */
-    protected $queries = null;
+    protected $queryableContent = null;
 
     /**
      * Response constructor.
@@ -48,31 +49,65 @@ class Response
      */
     public function __construct(Request $request, ResponseInterface $response)
     {
+        $this->setRequest($request);
+        $this->setResponse($response);
+        $this->queryableContent = new QueryBuilder();
+
+        $this->rawContent = $this->fetchContents();
+        $this->buildQueryableContent();
+    }
+
+    /**
+     * This is to make the response invokable and behave properly to Query calls
+     * e.g. With the $response, user can now call $response()->from('node')->get();
+     *
+     * @return QueryEngine
+     * @throws Exception
+     */
+    public function __invoke()
+    {
+        return $this->query()->reset(null, true);
+    }
+
+    /**
+     * Get requests details
+     *
+     * @return Request
+     */
+    protected function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * @param Request $request
+     */
+    protected function setRequest(Request $request)
+    {
         $this->request = $request;
+    }
+
+    /**
+     * @param ResponseInterface $response
+     * @throws NoResponseException
+     */
+    protected function setResponse(ResponseInterface $response)
+    {
         if(is_null($response)) {
             throw new NoResponseException();
         }
 
         $this->response = $response;
-        $this->contents = $this->fetchContents();
-        $this->makeQueryable();
-    }
-
-    public function __invoke()
-    {
-       return $this->query()->reset(null, true);
     }
 
     /**
      * Automatically parse response contents based on mime type
      *
-     * @return array|bool|mixed|\SimpleXMLElement|string
+     * @return array|bool|mixed|SimpleXMLElement|string
      */
     public function autoParse()
     {
-        $mimeType = $this->getMimeType();
-
-        return Parser::parseByMimeType($this->getContents(), $mimeType);
+        return Parser::parseByMimeType($this->getContents(), $this->getMimeType());
     }
 
     /**
@@ -85,31 +120,52 @@ class Response
         return $this->getBody()->getContents();
     }
 
+    /**
+     * @return int
+     */
     public function getStatusCode()
     {
         return $this->response->getStatusCode();
     }
 
+    /**
+     * @return array
+     */
     public function getHeaders()
     {
         return $this->response->getHeaders();
     }
 
+    /**
+     * @param $name
+     * @return string[]
+     */
     public function getHeader($name)
     {
         return $this->response->getHeader($name);
     }
 
+    /**
+     * @param $name
+     * @return bool
+     */
     public function hasHeader($name)
     {
         return $this->response->hasHeader($name);
     }
 
+    /**
+     * @param $name
+     * @return string
+     */
     public function getHeaderLine($name)
     {
         return $this->response->getHeaderLine($name);
     }
 
+    /**
+     * @return StreamInterface
+     */
     public function getBody()
     {
         return $this->response->getBody();
@@ -118,7 +174,7 @@ class Response
     /**
      * Get response data mime types
      *
-     * @return array|null
+     * @return array
      */
     public function getMimeTypes()
     {
@@ -128,7 +184,7 @@ class Response
             return explode(';', $content_types[0]);
         }
 
-        return null;
+        return [];
     }
 
     /**
@@ -139,7 +195,7 @@ class Response
     public function getMimeType()
     {
         $header = $this->getMimeTypes();
-        if ($header) {
+        if (count($header) > 0) {
             return $header[0];
         }
 
@@ -153,28 +209,18 @@ class Response
      */
     public function getContents()
     {
-        return $this->contents;
-    }
-
-    /**
-     * Get requests details
-     *
-     * @return Request
-     */
-    public function getRequest()
-    {
-        return $this->request;
+        return $this->rawContent;
     }
 
     /**
      * make QueryBuilder instance from response
      */
-    protected function makeQueryable()
+    protected function buildQueryableContent()
     {
         $array = $this->autoParse();
 
         if ($array) {
-            $this->queries = (new QueryBuilder())->collect($array);
+            $this->queryableContent = $this->queryableContent->collect($array);
         }
     }
 
@@ -201,11 +247,7 @@ class Response
      */
     public function isEmpty()
     {
-        if ($this->size()) {
-            return true;
-        }
-
-        return false;
+        return (bool) $this->size();
     }
 
     /**
@@ -213,18 +255,14 @@ class Response
      *
      * @param $node
      * @return QueryBuilder|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function query($node = null)
     {
-        if (!$this->queries instanceof QueryBuilder) {
-            $this->queries = new QueryBuilder();
-        }
-
         if (!is_null($node)) {
-            $this->queries->from($node);
+            $this->queryableContent->from($node);
         }
 
-        return $this->queries;
+        return $this->queryableContent;
     }
 }
