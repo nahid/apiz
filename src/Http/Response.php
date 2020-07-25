@@ -38,7 +38,7 @@ class Response
      *
      * @var null|QueryBuilder
      */
-    protected $queryableContent = null;
+    protected $queryBuilder = null;
 
     /**
      * Response constructor.
@@ -51,10 +51,8 @@ class Response
     {
         $this->setRequest($request);
         $this->setResponse($response);
-        $this->queryableContent = new QueryBuilder();
 
         $this->rawContent = $this->fetchContents();
-        $this->buildQueryableContent();
     }
 
     /**
@@ -66,7 +64,7 @@ class Response
      */
     public function __invoke()
     {
-        return $this->query()->reset(null, true);
+        return $this->query();
     }
 
     /**
@@ -213,18 +211,6 @@ class Response
     }
 
     /**
-     * make QueryBuilder instance from response
-     */
-    protected function buildQueryableContent()
-    {
-        $array = $this->autoParse();
-
-        if ($array) {
-            $this->queryableContent = $this->queryableContent->collect($array);
-        }
-    }
-
-    /**
      * get the response body size
      *
      * @return int
@@ -251,18 +237,31 @@ class Response
     }
 
     /**
+     * make QueryBuilder instance from response
+     */
+    protected function initQueryBuilder()
+    {
+        if (is_null($this->queryBuilder)) {
+            $this->queryBuilder = new QueryBuilder();
+
+            $parsedContent = $this->autoParse();
+
+            if ($parsedContent) {
+                $this->queryBuilder = $this->queryBuilder->collect($parsedContent);
+            }
+        }
+    }
+
+    /**
      * return QueryBuilder instance from response
      *
-     * @param $node
-     * @return QueryBuilder|null
+     * @return QueryEngine
      * @throws Exception
      */
-    public function query($node = null)
+    public function query()
     {
-        if (!is_null($node)) {
-            $this->queryableContent->from($node);
-        }
+        $this->initQueryBuilder();
 
-        return $this->queryableContent;
+        return $this->queryBuilder;
     }
 }
