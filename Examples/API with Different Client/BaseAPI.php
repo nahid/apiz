@@ -10,6 +10,7 @@ abstract class BaseAPI extends AbstractApi
     {
         parent::__construct();
 
+        // Just pass an instance of your own PSR7 supported client like this
         $this->setClient(new MyAwesomeClient());
     }
 
