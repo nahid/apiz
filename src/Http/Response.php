@@ -4,6 +4,7 @@ namespace Apiz\Http;
 
 use Apiz\Exceptions\NoResponseException;
 use Apiz\QueryBuilder;
+use Apiz\Utilities\Parser;
 use Psr\Http\Message\ResponseInterface;
 
 class Response
@@ -69,20 +70,9 @@ class Response
      */
     public function autoParse()
     {
-        $type = $this->getMimeType();
-        $contents = '';
+        $mimeType = $this->getMimeType();
 
-        if ($type == 'application/json' || $type == 'text/json' || $type == 'application/javascript') {
-            $contents = $this->parseJson(true);
-        } elseif ($type == 'application/xml' || $type == 'text/xml') {
-            $contents = $this->parseXml();
-        } elseif ($type == 'application/x-yaml' || $type == 'text/yaml') {
-            $contents = $this->parseYaml();
-        } else {
-            $contents = $this->getContents();
-        }
-
-        return $contents;
+        return Parser::parseByMimeType($this->getContents(), $mimeType);
     }
 
     /**
@@ -174,76 +164,6 @@ class Response
     public function getRequest()
     {
         return $this->request;
-    }
-
-    /**
-     * Parse raw contents if JSON
-     *
-     * @param bool $array
-     * @return bool|mixed|string
-     */
-    public function parseJson($array = false)
-    {
-        $type = $this->getMimeType();
-
-        if ( $type == 'application/json' || $type == 'text/json'|| $type == 'application/javascript' ) {
-            $contents = $this->getContents();
-            $contents = json_decode($contents, $array);
-            if ( json_last_error() == JSON_ERROR_NONE ) {
-                return $contents;
-            }
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Parse raw contents if XML
-     *
-     * @return array|bool|\SimpleXMLElement
-     */
-    public function parseXml()
-    {
-        libxml_use_internal_errors(true);
-        
-        $type = $this->getMimeType();
-        if ( $type == 'application/xml' || $type == 'text/xml' ) {
-            $elem = simplexml_load_string($this->contents);
-            if ( $elem !== false ) {
-                return $this->xml2array($elem);
-            } else {
-                return libxml_get_errors();
-            }
-        }
-
-        return false;
-    }
-
-    protected function xml2array($data)
-    {
-        $out = [];
-        foreach ( (array) $data as $index => $node ) {
-            $out[$index] = ( is_object ( $node ) ) ? $this->xml2array ( $node ) : $node;
-        }
-
-        return $out;
-    }
-
-    /**
-     * Parse raw contents if Yaml
-     *
-     * @return mixed
-     */
-    public function parseYaml()
-    {
-        $type = $this->getMimeType();
-
-        if ( $type == 'application/x-yaml' || $type == 'text/yaml' ) {
-            return yaml_parse($this->getContents());
-        }
-
-        return false;
     }
 
     /**
