@@ -8,11 +8,11 @@ use Apiz\Constants\MimeType;
 class Parser
 {
     /**
-     * @param $mimeType
      * @param $content
+     * @param $mimeType
      * @return array|bool|mixed|SimpleXMLElement|string
      */
-    public static function parseByMimeType($mimeType, $content)
+    public static function parseByMimeType($content, $mimeType)
     {
         if (in_array($mimeType, MimeType::JSON_TYPES)) {
             return self::parseJson($content, true);
