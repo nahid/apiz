@@ -159,7 +159,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function defaultHeaders()
+    protected function getDefaultHeaders()
     {
         return [];
     }
@@ -169,7 +169,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function defaultQueries()
+    protected function getDefaultQueries()
     {
         return [];
     }
@@ -460,8 +460,8 @@ abstract class AbstractApi
 
         $response = null;
         try {
-            $this->request->setDefaultHeaders($this->defaultHeaders());
-            $this->request->setDefaultQueries($this->defaultQueries());
+            $this->request->setDefaultHeaders($this->getDefaultHeaders());
+            $this->request->setDefaultQueries($this->getDefaultQueries());
 
             $clientResponse = $this->request->send($method, $uri);
             $response = $this->makeResponse($this->request, $clientResponse);
