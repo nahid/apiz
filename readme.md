@@ -29,7 +29,7 @@ namespace App\Services;
 
 use Apiz\AbstractApi;
 
-class ReqResApi extends AbstractApi
+class ReqResApiService extends AbstractApi
 {
     protected function getBaseURL()
     {
@@ -86,7 +86,7 @@ class ReqResApiService extends AbstractApi
         $response = $this->get('users');
 
         if ($response->getStatusCode() === 200) {
-            return $response;
+            return $response()->toArray();
         }
 
         return [];
@@ -106,14 +106,14 @@ public function createUser(array $data)
             ->post('create');
 
     if ($response->getStatusCode() === 201) {
-        return $response;
+        return $response()->toArray();
     }
 
     return null;
 }
 ```
 
-You can easily use all HTTP verbs like `get`, `post` etc. Its totally hassle free. 
+You can easily use all HTTP verbs like `get`, `post` etc. It's totally hassle free. 
 See more examples in the [Examples Folder](./Examples).
 
 ## Query over Response Data
