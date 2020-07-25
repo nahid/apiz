@@ -108,7 +108,7 @@ abstract class AbstractApi
      * @return Response
      * @throws InvalidResponseClassException
      */
-    protected function makeResponse(Request $request, ResponseInterface $response)
+    private function makeResponse(Request $request, ResponseInterface $response)
     {
         $responseClass = $this->response;
         $apizResponse = new $responseClass($request, $response);
@@ -454,7 +454,7 @@ abstract class AbstractApi
      * @return Response
      * @throws Exception
      */
-    protected function makeMethodRequest($method, $uri)
+    private function makeMethodRequest($method, $uri)
     {
         $this->executePreHooks($this->request);
 
