@@ -146,9 +146,62 @@ You're welcome. :D
 
 ## Overriding HTTP Client
 
-By default we're using `Guzzle` as our HTTP Client. But you're not bound by this. You can very easily use your own PSR7 supported HTTP Client with `Apiz`.
+By default we are using `Guzzle` as our HTTP Client. But you are not bound to use this. You can easily use your own PSR7 supported HTTP Client with `Apiz`.
 Just pass an instance of your HTTP Client to our `setClient()` method.
 See an example [here](./Examples/API%20with%20Different%20Client).
+
+Here is our GuzzleClient to get an idea how your Client should look like:
+```php
+<?php
+
+namespace Apiz\Http\Clients;
+
+use Apiz\Http\AbstractClient;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
+
+// Your client must extend the `AbstractClient`
+class GuzzleClient extends AbstractClient
+{
+    public function getRequestClass()
+    {
+        // Return the Request class name of your PSR7 supported Client
+        // This Request class must implement the Psr\Http\Message\RequestInterface
+        return Request::class;
+    }
+
+    public function getResponseClass()
+    {
+        // Return the Response class name of your PSR7 supported Client
+        // This Response class must implement the Psr\Http\Message\ResponseInterface        
+        return Response::class;
+    }
+
+    public function getUriClass()
+    {
+        // Return the Uri class name of your PSR7 supported Client
+        // This Uri class must implement the Psr\Http\Message\UriInterface        
+        return Uri::class;
+    }
+
+    /**
+     * @param mixed ...$args
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
+    public function send(...$args)
+    {
+        // In this method, implement how your Client execute the Request sending
+        $client = new Client();
+
+        return $client->send(... $args);
+    }
+}
+```
 
 ## List of methods for common HTTP verbs
 
@@ -177,5 +230,3 @@ See an example [here](./Examples/API%20with%20Different%20Client).
 - `json(array)`: Set JSON data to be passed as Request Body
 - `file(string $name, string $file_path, string $filename [, array $headers])`
 - `params(array $params)`
-
-
