@@ -1,6 +1,6 @@
 # APIZ
 
-APIZ is a PHP API Client Development Kit. You can easily handle all kinds of JSON API responses using this package.
+APIZ is a PHP API Client Development Kit, it helps you to manage HTTP API call in OOP way. You can easily handle and isolate all kinds of REST API calls and their responses by using this package.
 
 ## Requirements
 
@@ -18,18 +18,18 @@ There are no extra configurations for this package.
 
 ## Usage
 
-Lets make an API service for https://reqres.in.
+Lets see an example to consume API from https://reqres.in.
 
-Suppose you have to make several api service for your package. Your service directory is
+Suppose you need to create several API services for your project. Your service directory is
 `app/Services`. Now we are going to develop a service for https://reqres.in and make a class file `ReqResApiService.php`
-which is extend by `\Apiz\AbstractApi` class.
+which will extend `\Apiz\AbstractApi` class.
 
 ```php
 namespace App\Services;
 
 use Apiz\AbstractApi;
 
-class ReqResApi extends AbstractApi
+class ReqResApiService extends AbstractApi
 {
     protected function getBaseURL()
     {
@@ -86,13 +86,15 @@ class ReqResApiService extends AbstractApi
         $response = $this->get('users');
 
         if ($response->getStatusCode() === 200) {
-            return $response;
+            return $response()->toArray();
         }
 
         return [];
     }
 }
 ```
+So, we are basically making a `GET` request to the URL `https://reqres.in/api/users`.
+
 See, how easy it is to manage an API now?
 
 Let's see another example.
@@ -106,14 +108,31 @@ public function createUser(array $data)
             ->post('create');
 
     if ($response->getStatusCode() === 201) {
-        return $response;
+        return $response()->toArray();
     }
 
     return null;
 }
 ```
 
-You can easily use all HTTP verbs like `get`, `post` etc. Its totally hassle free. 
+## Default Headers
+
+Sometimes we need to bind some headers with all the requests. Suppose if you want to deal with the Github API, you have to send `access_token` in every request with the headers.
+So APIZ provide you a handy way to deal with this problem. Just override `AbstractApi::getDefaultHeaders()`.
+
+
+```php
+protected function getDefaultHeaders()
+{
+    return [
+        'access_token' => $_ENV['GITHUB_ACCESS_TOKEN'],
+    ];
+}
+```
+
+Cool, right?
+
+You can easily use all HTTP verbs like `get`, `post` etc. It's totally hassle free. 
 See more examples in the [Examples Folder](./Examples).
 
 ## Query over Response Data
@@ -137,11 +156,12 @@ public function getFirstUser()
 We're getting list of users in the `data` key in the response. From that we're collecting the first data.
 See, how easy it is!
 
-You can find detailed usage of the QArray [here](https://github.com/nahid/qarray).
+You can find detail usage of the QArray [here](https://github.com/nahid/qarray).
 
 Additionally, there is a secret sauce for you. 
 
 If you don't want to query like: `$users->query()`, you can just do it like this: `$users()`. That means the response object is invokable and behave exactly like calling the `query()` method.
+
 You're welcome. :D 
 
 ## Overriding HTTP Client
@@ -230,3 +250,8 @@ class GuzzleClient extends AbstractClient
 - `json(array)`: Set JSON data to be passed as Request Body
 - `file(string $name, string $file_path, string $filename [, array $headers])`
 - `params(array $params)`
+
+
+### Contribution
+
+Feel free send feedback and issues. Contributions to improve this package is most welcome too. 
