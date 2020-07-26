@@ -2,10 +2,14 @@
 
 namespace Apiz;
 
-use Apiz\Exceptions\UnknownResponseClassException;
-use GuzzleHttp\Psr7\Request as Psr7Request;
+use Apiz\Http\AbstractClient;
+use Apiz\Http\Clients\GuzzleClient;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
+use Apiz\Traits\Hookable;
+use Exception;
+use Psr\Http\Message\ResponseInterface;
+use Apiz\Exceptions\InvalidResponseClassException;
 
 /**
  * Class AbstractApi
@@ -13,6 +17,8 @@ use Apiz\Http\Response;
  */
 abstract class AbstractApi
 {
+    use Hookable;
+
     /**
      * list of available http exceptions
      *
@@ -20,267 +26,172 @@ abstract class AbstractApi
      */
     protected $httpExceptions = [];
 
-
     /**
      * skip exception when its value true
      *
      * @var bool
      */
-    protected $skipHttpException = false;
-
-    /**
-     * Options for guzzle clients
-     *
-     * @var array
-     */
-    protected $options = [];
-
-    /**
-     * guzzle base URL
-     *
-     * @var string
-     */
-    protected $baseUrl = '';
-
-    /**
-     * URL prefix
-     *
-     * @var string
-     */
-    protected $prefix = '';
-
+    protected $shouldSkipHttpException = false;
 
     /**
      * this variable contains request details
      *
-     * @var array
-     */
-    protected $request = [];
-
-
-    /**
-     * Default headers options for request
-     *
-     * @var array
-     */
-    protected $defaultHeaders = [];
-
-    /**
-     * Default Query options for request
-     *
-     * @var array
-     */
-    protected $defaultQueries = [];
-
-
-    /**
-     * when need to skip default header make it true
-     *
-     * @var bool
-     */
-    protected $skipDefaultHeader = false;
-
-    /**
-     * when need to skip default query make it true
-     *
-     * @var bool
-     */
-    protected $skipDefaultQueries = false;
-
-    /**
-     * Guzzle http object
-     *
      * @var Request
      */
-    protected $http;
+    protected $request;
 
     /**
-     * Request parameters
+     * response class name
      *
-     * @var array
-     */
-    protected $parameters = [];
-
-    /**
-     * contains custom response
-     *
-     * @var $response
+     * @var string
      */
     protected $response = Response::class;
 
+    /**
+     * AbstractApi constructor.
+     * @param Request|null $request
+     */
     public function __construct(Request $request = null)
     {
-        $this->baseUrl = $this->baseUrl();
-
-        $this->defaultHeaders = $this->setDefaultHeaders();
-        $this->defaultQueries = $this->setDefaultQueries();
-
-        if (is_null($request)) {
-            $opts = ['base_uri' => $this->baseUrl] + $this->options;
-            $request = new Request(null, $opts);
+        if (!$request) {
+            $this->request = new Request(new GuzzleClient());
         }
 
-        $this->http = $request;
-
+        $this->setBaseURL($this->getBaseURL());
+        $this->setPrefix($this->getPrefix());
     }
 
-
     /**
-     * set base URL for guzzle client
-     *
      * @return string
      */
-    abstract protected function baseUrl();
-
+    abstract protected function getBaseURL();
 
     /**
-     * set url prefix from code
+     * set Base URL
+     *
+     * @param string $url
+     */
+    private function setBaseURL($url)
+    {
+        $this->request->setBaseURL($url);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getPrefix()
+    {
+        return '';
+    }
+
+    /**
+     * set url prefix
+     *
      * @param string $prefix
-     * @return null|string
      */
-    protected function setPrefix($prefix = '')
+    private function setPrefix($prefix)
     {
-        return $this->prefix = $prefix;
+        $this->request->setPrefix($prefix);
     }
 
     /**
-     * set default headers that will automatically bind with every request headers
-     *
-     * @return array
+     * @param AbstractClient $client
      */
-    protected function setDefaultHeaders()
+    protected function setClient(AbstractClient $client)
     {
-        return [];
+        $this->request->setClient($client);
     }
 
     /**
-     * set default queries that will automatically bind with every request headers
-     *
-     * @return array
-     */
-    protected function setDefaultQueries()
-    {
-        return [];
-    }
-
-
-    /**
-     * @param $uri
+     * @param Request $request
+     * @param ResponseInterface $response
      * @return Response
-     * @throws \Exception
+     * @throws InvalidResponseClassException
      */
-    public function get($uri)
+    private function makeResponse(Request $request, ResponseInterface $response)
     {
-        return $this->makeMethodRequest('GET', $uri);
+        $responseClass = $this->response;
+        $apizResponse = new $responseClass($request, $response);
+
+        if (!($apizResponse instanceof Response)) {
+            throw new InvalidResponseClassException();
+        }
+
+        return $apizResponse;
     }
 
     /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
+     * @param string $responseClass
      */
-    public function post($uri)
+    protected function setResponseClass($responseClass)
     {
-        return $this->makeMethodRequest('POST', $uri);
+        $this->response = $responseClass;
     }
-
-    /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
-     */
-    public function put($uri)
-    {
-        return $this->makeMethodRequest('PUT', $uri);
-    }
-
-    /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
-     */
-    public function patch($uri)
-    {
-        return $this->makeMethodRequest('PATCH', $uri);
-    }
-
-    /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
-     */
-    public function delete($uri)
-    {
-        return $this->makeMethodRequest('DELETE', $uri);
-    }
-
-    /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
-     */
-    public function head($uri)
-    {
-        return $this->makeMethodRequest('HEAD', $uri);
-    }
-
-    /**
-     * @param $uri
-     * @return Response
-     * @throws \Exception
-     */
-    public function options($uri)
-    {
-        return $this->makeMethodRequest('OPTIONS', $uri);
-    }
-
 
     /**
      * set form parameters or form data for POST, PUT and PATCH request
      *
      * @param array $params
-     * @return \Apiz\AbstractApi|bool
+     * @return AbstractApi
      */
-    protected function formParams($params = array())
+    protected function withFormParams(array $params = [])
     {
-        if (is_array($params)) {
-            $this->parameters['form_params'] = $params;
-            return $this;
-        }
-        return false;
+        $this->request->setParameters($params, 'form_params');
+
+        return $this;
     }
 
     /**
      * set request headers
      *
      * @param array $params
-     * @return \Apiz\AbstractApi|bool
+     * @return AbstractApi|bool
      */
-    protected function headers($params = array())
+    protected function withHeaders(array $params = [])
     {
-        if (is_array($params)) {
-            $this->parameters['headers'] = $params;
-            return $this;
-        }
-        return false;
-    }
-
-    /**
-     * @return \Apiz\AbstractApi
-     */
-    protected function skipDefaultHeaders()
-    {
-        $this->skipDefaultHeader = true;
+        $this->request->setParameters($params, 'headers');
 
         return $this;
     }
 
     /**
-     * @return \Apiz\AbstractApi
+     * get default headers that will automatically bind with every request headers
+     *
+     * @return array
      */
-    protected function skipDefaultQueries()
+    protected function getDefaultHeaders()
     {
-        $this->skipDefaultQueries = true;
+        return [];
+    }
+
+    /**
+     * get default queries that will automatically bind with every request
+     *
+     * @return array
+     */
+    protected function getDefaultQueries()
+    {
+        return [];
+    }
+
+    /**
+     * @param bool $action
+     * @return self
+     */
+    protected function skipDefaultHeaders($action = true)
+    {
+        $this->request->skipDefaultHeaders($action);
+
+        return $this;
+    }
+
+    /**
+     * @param bool $action
+     * @return self
+     */
+    protected function skipDefaultQueries($action = true)
+    {
+        $this->request->skipDefaultQueries($action);
 
         return $this;
     }
@@ -290,190 +201,162 @@ abstract class AbstractApi
      * set query parameters
      *
      * @param array $params
-     * @return \Apiz\AbstractApi|bool
+     * @return AbstractApi|bool
      */
-    protected function params($params = array())
+    protected function withQueryParams(array $params = [])
     {
-        if (is_array($params)) {
-            $this->parameters['query'] = $params;
-            return $this;
-        }
-        return false;
+        $this->request->setParameters($params, 'query');
+
+        return $this;
     }
 
     /**
      * Add allow redirects param
      *
      * @param array $params
-     * @return \Apiz\AbstractApi|bool
+     * @return AbstractApi|bool
      */
-    protected function allowRedirects($params = [])
+    protected function allowRedirects(array $params = [])
     {
-        if (is_array($params)) {
-            $this->parameters['allow_redirects'] = $params;
-            return $this;
-        }
-        return false;
+        $this->request->setParameters($params, 'allow_redirects');
+
+        return $this;
     }
 
     /**
      * Set basic auth options
      *
-     * @param       $username
-     * @param       $password
+     * @param string $username
+     * @param string $password
      * @param array $opts
-     * @return \Apiz\AbstractApi
+     * @return AbstractApi
      */
-    protected function auth($username, $password, $opts = [])
+    protected function basicAuth($username, $password, array $opts = [])
     {
         $params = [$username, $password];
 
-        if (is_array($opts)) {
+        if (!empty($opts)) {
             $params = array_merge($params, $opts);
         }
 
-        $this->parameters['auth'] = $params;
+        $this->request->setParameters($params, 'auth');
+
         return $this;
     }
-
 
     /**
      * Set request body
      *
-     * @param string|blob|array
-     * @return \Apiz\AbstractApi|bool
+     * @param string|array $contents
+     * @return AbstractApi|bool
      */
     protected function body($contents)
     {
         if (is_array($contents)) {
-            $this->headers([
+            $this->withHeaders([
                 'Content-Type'=>'application/json'
             ]);
 
             $contents = json_encode($contents);
         }
-        $this->parameters['body']   = $contents;
+
+        $this->request->setParameters($contents, 'body');
+
         return $this;
     }
-
 
     /**
      * Set request param as JSON
      *
      * @param array $params
-     * @return \Apiz\AbstractApi|bool
+     * @return AbstractApi|bool
      */
-    protected function json($params = [])
+    protected function json(array $params = [])
     {
-        if (is_array($params)) {
-            $this->parameters['json'] = $params;
-            return $this;
-        }
+        $this->request->setParameters($params, 'json');
 
-        return false;
+        return $this;
     }
 
     /**
      * Send file to the request
      *
-     * @param       $name
-     * @param       $file
-     * @param       $filename
+     * @param string $name
+     * @param string $file
+     * @param string $filename
      * @param array $headers
-     * @return \Apiz\AbstractApi
+     * @return AbstractApi
      */
-    protected function file($name, $file, $filename, $headers = [])
+    protected function file($name, $file, $filename, array $headers = [])
     {
-        $params = [];
-
         if (file_exists($file)) {
             $contents = fopen($file, 'r');
 
-            $params = [
-                'name' => $name,
-                'contents' => $contents,
-                'filename' => $filename,
-                'headers' => $headers
-            ];
+            return $this->attach($name, $contents, $filename, $headers);
         }
 
-        $this->parameters['multipart'][] = $params;
         return $this;
     }
 
     /**
      * Attach a raw content with request
      *
-     * @param       $name
-     * @param       $contents
-     * @param       $filename
+     * @param string $name
+     * @param string $contents
+     * @param string $filename
      * @param array $headers
-     * @return \Apiz\AbstractApi
+     * @return AbstractApi
      */
-    protected function attach($name, $contents, $filename, $headers = [])
+    protected function attach($name, $contents, $filename, array $headers = [])
     {
-        $params = [
+        $this->request->setParameters([
             'name' => $name,
             'contents' => $contents,
             'filename' => $filename,
             'headers' => $headers
-        ];
+        ], 'multipart');
 
-
-        $this->parameters['multipart'][] = $params;
         return $this;
     }
 
     /**
      * Attach form value with multipart
      *
-     * @param       array $data
-     * @return \Apiz\AbstractApi
+     * @param array $data
+     * @return AbstractApi
      */
-    protected function formData($data = [])
+    protected function withFormData(array $data = [])
     {
-        foreach($data as $key=>$value) {
-            $params = [
+        $params = [];
+        foreach($data as $key => $value) {
+            $params[] = [
                 'name' => $key,
                 'contents' => $value
             ];
+        }
 
-            $this->parameters['multipart'][] = $params;
+        if (!empty($params)) {
+            $this->request->setParameters($params, 'multipart');
         }
 
         return $this;
     }
 
     /**
-     * Set all parameters from this single options
+     * skip default http exceptions from request
      *
-     * @param array $options
-     * @return \Apiz\AbstractApi
+     * @param array $codes
+     * @return AbstractApi
      */
-    protected function parameters($options = [])
+    protected function skipHttpExceptions(array $codes = [])
     {
-        $this->parameters = $options;
-        return $this;
-    }
+        if (!empty($codes)) {
+            $this->shouldSkipHttpException = true;
 
-
-    /**
-     * skip default http exception from request
-     *
-     * @param array $exceptions
-     * @return \Apiz\AbstractApi
-     */
-    protected function skipHttpExceptions(array $exceptions = [])
-    {
-        if (count($exceptions)>0) {
-            foreach ($exceptions as $code) {
+            foreach ($codes as $code) {
                 unset($this->httpExceptions[$code]);
             }
-
-            return $this;
         }
-
-        $this->skipHttpException = true;
 
         return $this;
     }
@@ -482,17 +365,86 @@ abstract class AbstractApi
      * push new http exceptions to current request
      *
      * @param array $exceptions
-     * @return \Apiz\AbstractApi
+     * @return AbstractApi
      */
     protected function pushHttpExceptions(array $exceptions = [])
     {
-        foreach($exceptions as $code=>$exception) {
+        foreach($exceptions as $code => $exception) {
             $this->httpExceptions[$code] = $exception;
         }
 
         return $this;
     }
 
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function get($uri)
+    {
+        return $this->makeMethodRequest('GET', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function post($uri)
+    {
+        return $this->makeMethodRequest('POST', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function put($uri)
+    {
+        return $this->makeMethodRequest('PUT', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function patch($uri)
+    {
+        return $this->makeMethodRequest('PATCH', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function delete($uri)
+    {
+        return $this->makeMethodRequest('DELETE', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function head($uri)
+    {
+        return $this->makeMethodRequest('HEAD', $uri);
+    }
+
+    /**
+     * @param $uri
+     * @return Response
+     * @throws Exception
+     */
+    protected function options($uri)
+    {
+        return $this->makeMethodRequest('OPTIONS', $uri);
+    }
 
     /**
      * Make all request from here
@@ -500,75 +452,35 @@ abstract class AbstractApi
      * @param string $method
      * @param string $uri
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function makeMethodRequest($method, $uri)
+    private function makeMethodRequest($method, $uri)
     {
+        $this->executePreHooks($this->request);
 
-        if (!empty($this->prefix)) {
-            $this->prefix = trim($this->prefix, '/') . '/';
-        }
-        $uri = $this->prefix . trim($uri, '/');
-
-        $this->mergeDefaultHeaders();
-        $this->mergeDefaultQueries();
-
-
-        $this->request = [
-            'url' => trim($this->baseUrl, '/') . '/' . $uri,
-            'method' => $method,
-            'parameters' => $this->parameters
-        ];
-
-        $request = new Psr7Request($method, $uri);
-        $request->details = $this->request;
-
+        $response = null;
         try {
-            $response = $this->http->client->send($request, $this->parameters);
-        } catch (\Exception $e) {
-            throw $e;
-        }
+            $this->request->setDefaultHeaders($this->getDefaultHeaders());
+            $this->request->setDefaultQueries($this->getDefaultQueries());
 
-        if (!$this->skipHttpException) {
-            if ($response instanceof \GuzzleHttp\Psr7\Response) {
-                new HttpExceptionReceiver($response, $this->httpExceptions);
+            $clientResponse = $this->request->send($method, $uri);
+            $response = $this->makeResponse($this->request, $clientResponse);
+
+            if (!$this->shouldSkipHttpException) {
+                if ($response instanceof Response) {
+                    new HttpExceptionReceiver($response, $this->httpExceptions);
+                }
             }
+
+            $this->executeSuccessHooks($clientResponse, $this->request);
+        } catch (Exception $e) {
+            $this->executeFailHooks($e);
+            throw $e;
+        } finally {
+            $this->resetObjects();
         }
 
-        $responder = $this->response;
-
-        /**
-         * @var $this->response $resp
-         */
-        $resp = new $responder($response, $request);
-
-        if (is_null($this->response) || !($resp instanceof Response)) {
-            throw new UnknownResponseClassException();
-        }
-
-        $this->resetObjects();
-        return $resp;
-    }
-
-
-    /**
-     * Get base URL
-     *
-     * @return string
-     */
-    public function getBaseUrl()
-    {
-        return $this->baseUrl;
-    }
-
-    /**
-     * Get Guzzle http client object
-     *
-     * @return \GuzzleHttp\Client
-     */
-    public function getGuzzleClient()
-    {
-        return $this->http->client;
+        return $response;
     }
 
     /**
@@ -576,49 +488,7 @@ abstract class AbstractApi
      */
     protected function resetObjects()
     {
-        $clearGarbage = [
-            'skipDefaultHeader' => false,
-            'options' => [],
-            'request'   => [],
-            'parameters' => [],
-            'skipHttpException' => false,
-        ];
-
-        foreach ($clearGarbage as $key=>$value) {
-            if (property_exists($this, $key)) {
-                $this->$key=$value;
-            }
-        }
-    }
-
-
-    protected function mergeDefaultHeaders()
-    {
-        if (!$this->skipDefaultHeader) {
-            if (isset($this->parameters['headers'])) {
-                $this->parameters['headers'] = array_merge($this->defaultHeaders, $this->parameters['headers']);
-            } else {
-                $this->parameters['headers'] = $this->defaultHeaders;
-            }
-
-            if (count($this->parameters['headers']) < 1) {
-                unset($this->parameters['headers']);
-            }
-        }
-    }
-
-    protected function mergeDefaultQueries()
-    {
-        if (!$this->skipDefaultQueries) {
-            if (isset($this->parameters['query'])) {
-                $this->parameters['query'] = array_merge($this->defaultQueries, $this->parameters['query']);
-            } else {
-                $this->parameters['query'] = $this->defaultQueries;
-            }
-
-            if (count($this->parameters['query']) < 1) {
-                unset($this->parameters['query']);
-            }
-        }
+        $this->shouldSkipHttpException = false;
+        $this->request = null;
     }
 }
