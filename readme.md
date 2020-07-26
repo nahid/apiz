@@ -104,7 +104,7 @@ Let's see another example.
 ```php
 public function createUser(array $data)
 {
-    $response = $this->formParams($data)
+    $response = $this->withFormParams($data)
             ->post('create');
 
     if ($response->getStatusCode() === 201) {
