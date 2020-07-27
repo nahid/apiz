@@ -1,6 +1,6 @@
 <?php
 
-namespace Apiz\Http;
+namespace Apiz\Http\Clients;
 
 use Exception;
 use Psr\Http\Message\RequestInterface;

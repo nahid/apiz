@@ -2,6 +2,7 @@
 
 namespace Apiz\Http;
 
+use Apiz\Http\Clients\AbstractClient;
 use Exception;
 use Apiz\Exceptions\ClientNotDefinedException;
 use Apiz\Exceptions\InvalidResponseClassException;

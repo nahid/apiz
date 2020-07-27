@@ -1,6 +1,6 @@
 {
     "name": "nahid/apiz",
-    "description": "Apiz is a boilerplate for REST API manager",
+    "description": "Apiz is a boilerplate for REST API HTTP call manager",
     "type": "php",
     "require": {
         "php": ">=5.6.0 | >=7.0",

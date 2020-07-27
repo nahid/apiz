@@ -2,7 +2,6 @@
 
 namespace Apiz\Http\Clients;
 
-use Apiz\Http\AbstractClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
