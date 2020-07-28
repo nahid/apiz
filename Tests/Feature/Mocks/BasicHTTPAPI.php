@@ -23,17 +23,17 @@ class BasicHTTPAPI extends AbstractApi
 
     public function createUser(array $data)
     {
-        return $this->json($data)->post('users');
+        return $this->withJson($data)->post('users');
     }
 
     public function updateUser(array $data)
     {
-        return $this->json($data)->put('users');
+        return $this->withJson($data)->put('users');
     }
 
     public function partiallyUpdateUser(array $data)
     {
-        return $this->json($data)->patch('users');
+        return $this->withJson($data)->patch('users');
     }
 
     public function deleteUser($id)

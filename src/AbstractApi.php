@@ -2,7 +2,7 @@
 
 namespace Apiz;
 
-use Apiz\Http\AbstractClient;
+use Apiz\Http\Clients\AbstractClient;
 use Apiz\Http\Clients\GuzzleClient;
 use Apiz\Http\Request;
 use Apiz\Http\Response;
@@ -250,7 +250,7 @@ abstract class AbstractApi
      * @param string|array $contents
      * @return AbstractApi|bool
      */
-    protected function body($contents)
+    protected function withBody($contents)
     {
         if (is_array($contents)) {
             $this->withHeaders([
@@ -271,7 +271,7 @@ abstract class AbstractApi
      * @param array $params
      * @return AbstractApi|bool
      */
-    protected function json(array $params = [])
+    protected function withJson(array $params = [])
     {
         $this->request->setParameters($params, 'json');
 
@@ -287,7 +287,7 @@ abstract class AbstractApi
      * @param array $headers
      * @return AbstractApi
      */
-    protected function file($name, $file, $filename, array $headers = [])
+    protected function withFile($name, $file, $filename, array $headers = [])
     {
         if (file_exists($file)) {
             $contents = fopen($file, 'r');
