@@ -67,6 +67,11 @@ class Response
         return $this->query();
     }
 
+    public function __toString()
+    {
+        return (string) $this->rawContent;
+    }
+
     /**
      * Get requests details
      *
