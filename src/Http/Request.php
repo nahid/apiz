@@ -73,6 +73,10 @@ class Request
      * @var array
      */
     protected $parameters = [];
+    /**
+     * @var RequestInterface
+     */
+    protected RequestInterface $psrRequest;
 
     public function __construct(AbstractClient $client = null)
     {
@@ -297,7 +301,14 @@ class Request
 
         $uriObject = $this->getClient()->getUri($fullPath);
 
-        return $this->getClient()->getRequest($method, $uriObject);
+        $this->psrRequest = $this->getClient()->getRequest($method, $uriObject);
+
+        return $this->psrRequest;
+    }
+
+    public function getPsrRequest()
+    {
+        return $this->psrRequest;
     }
 
     /**
