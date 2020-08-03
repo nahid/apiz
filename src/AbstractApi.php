@@ -67,11 +67,20 @@ abstract class AbstractApi
     abstract protected function getBaseURL();
 
     /**
+     * Get request instance
+     *
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+    /**
      * set Base URL
      *
      * @param string $url
      */
-    private function setBaseURL($url)
+    protected function setBaseURL($url)
     {
         $this->request->setBaseURL($url);
     }
@@ -79,7 +88,7 @@ abstract class AbstractApi
     /**
      * @return string
      */
-    protected function getPrefix()
+    public function getPrefix()
     {
         return '';
     }
@@ -89,7 +98,7 @@ abstract class AbstractApi
      *
      * @param string $prefix
      */
-    private function setPrefix($prefix)
+    protected function setPrefix($prefix)
     {
         $this->request->setPrefix($prefix);
     }
@@ -456,14 +465,14 @@ abstract class AbstractApi
      */
     private function makeMethodRequest($method, $uri)
     {
-        $this->executePreHooks($this->request);
-
         $response = null;
         try {
             $this->request->setDefaultHeaders($this->getDefaultHeaders());
             $this->request->setDefaultQueries($this->getDefaultQueries());
 
-            $clientResponse = $this->request->send($method, $uri);
+            $request = $this->request->make($method, $uri);
+            $this->executePreHooks($this->request);
+            $clientResponse = $this->request->sendByObject($request);
             $response = $this->makeResponse($this->request, $clientResponse);
 
             if (!$this->shouldSkipHttpException) {

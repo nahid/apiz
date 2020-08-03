@@ -85,7 +85,7 @@ class Request
      * @return AbstractClient
      * @throws ClientNotDefinedException
      */
-    protected function getClient()
+    public function getClient()
     {
         if (!$this->client) {
             throw new ClientNotDefinedException();
@@ -107,7 +107,7 @@ class Request
      *
      * @return string
      */
-    protected function getBaseURL()
+    public function getBaseURL()
     {
         return trim($this->baseUrl, '/');
     }
@@ -288,7 +288,7 @@ class Request
      * @return RequestInterface
      * @throws ClientNotDefinedException
      */
-    private function make($method, $uri)
+    public function make($method, $uri)
     {
         $this->mergeDefaultHeaders();
         $this->mergeDefaultQueries();
@@ -310,6 +310,17 @@ class Request
     {
         $request = $this->make($method, $uri);
 
+        return $this->sendByObject($request);
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @return ResponseInterface
+     * @throws ClientNotDefinedException
+     * @throws InvalidResponseClassException
+     */
+    public function sendByObject($request)
+    {
         $response = $this->getClient()->send($request, $this->getParameters());
 
         if (!$this->getClient()->isValidResponse($response)) {
@@ -323,7 +334,7 @@ class Request
      * @param string $uri
      * @return string
      */
-    private function getFullRequestPath($uri)
+    public function getFullRequestPath($uri)
     {
         $uri = trim($uri, '/');
         $prefix = $this->getPrefix();
