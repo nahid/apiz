@@ -481,7 +481,7 @@ abstract class AbstractApi
                 }
             }
 
-            $this->executeSuccessHooks($clientResponse, $this->request);
+            $this->executeSuccessHooks($response, $this->request);
         } catch (Exception $e) {
             $this->executeFailHooks($e);
             throw $e;
