@@ -42,7 +42,7 @@ class GuzzleClient extends AbstractClient
      */
     public function send(...$args)
     {
-        $client = new Client();
+        $client = new Client($this->config);
 
         return $client->send(... $args);
     }

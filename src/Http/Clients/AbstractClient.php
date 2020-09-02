@@ -9,6 +9,16 @@ use Psr\Http\Message\UriInterface;
 
 abstract class AbstractClient
 {
+
+    /**
+     * @var array
+     */
+    protected $config;
+
+    public function __construct($config = [])
+    {
+        $this->config = $config;
+    }
     /**
      * @return string
      */

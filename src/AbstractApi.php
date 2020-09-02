@@ -48,13 +48,18 @@ abstract class AbstractApi
     protected $response = Response::class;
 
     /**
+     * @var array
+     */
+    protected $config = [];
+
+    /**
      * AbstractApi constructor.
      * @param Request|null $request
      */
     public function __construct(Request $request = null)
     {
         if (!$request) {
-            $this->request = new Request(new GuzzleClient());
+            $this->request = new Request(new GuzzleClient($this->config));
         }
 
         $this->setBaseURL($this->getBaseURL());
@@ -65,6 +70,26 @@ abstract class AbstractApi
      * @return string
      */
     abstract protected function getBaseURL();
+
+    /**
+     * Get client configs
+     *
+     * @return array
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Set client config
+     *
+     * @param $config
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
+    }
 
     /**
      * Get request instance
