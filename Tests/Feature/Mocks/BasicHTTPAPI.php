@@ -11,7 +11,7 @@ class BasicHTTPAPI extends AbstractApi
         return 'https://reqres.in';
     }
 
-    protected function getPrefix()
+    public function getPrefix()
     {
         return 'api';
     }
