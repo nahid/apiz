@@ -58,7 +58,7 @@ abstract class AbstractApi
      */
     public function __construct(Request $request = null)
     {
-        if (!$request) {
+        if (!$request || !$request->hasClient()) {
             $this->request = new Request(new GuzzleClient($this->config));
         }
 

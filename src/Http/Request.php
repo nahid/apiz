@@ -107,6 +107,16 @@ class Request
     }
 
     /**
+     * check if client is set
+     *
+     * @return string
+     */
+    public function hasClient()
+    {
+        return $this->client;
+    }
+
+    /**
      * get Base URL
      *
      * @return string
