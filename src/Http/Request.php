@@ -367,4 +367,12 @@ class Request
 
         return "{$baseUrl}/{$uri}";
     }
+
+    public function reset()
+    {
+        $this->shouldSkipDefaultHeader = false;
+        $this->shouldSkipDefaultQueries = false;
+        $this->options = [];
+        $this->parameters = [];
+    }
 }

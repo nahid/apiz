@@ -523,6 +523,6 @@ abstract class AbstractApi
     protected function resetObjects()
     {
         $this->shouldSkipHttpException = false;
-        $this->request = null;
+        $this->request->reset();
     }
 }
