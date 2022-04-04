@@ -22,7 +22,7 @@ abstract class BaseAPI extends AbstractApi
         return 'https://reqres.in';
     }
 
-    protected function getPrefix()
+    public function getPrefix()
     {
         return 'api';
     }
@@ -35,24 +35,29 @@ abstract class BaseAPI extends AbstractApi
 
 
     /**
-     * some time we need check API  authentication we can check basic 
-     * and token base authentication with getDefaultHeaders function 
+     * some time we need check API authentication or validate default headers value,
+     * with getDefaultHeaders() function we can check basic and token base authentication 
      * 
-     * token base authentication 
-     * return [
-     *          'access_token' => $_ENV['ACCESS_TOKEN'] 
-     *      ];
-     * 
-     * Basic authentication   
-     * return [
-     *          'Authorization' => 'Basic ' . base64_encode('API_AUTH_USER' . ':' . 'API_AUTH_PASS'),
-     *      ];
      */
 
+    // Basic authentication   
     protected function getDefaultHeaders()
     {
         return [
             'Authorization' => 'Basic ' . base64_encode(env('YOUR_API_AUTH_USER_NAME') . ':' . env('YOUR_API_AUTH_PASSWORD')),
         ];
     }
+
+    /**
+     * token base authentication 
+     * 
+     * protected function getDefaultHeaders()
+     *   {
+     *      return [
+     *           'access_token' => $_ENV['ACCESS_TOKEN'] 
+     *      ];
+     *  }
+     * 
+     */
+    
 }
