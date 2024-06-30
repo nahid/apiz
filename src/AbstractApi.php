@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Apiz;
 
 use Apiz\Http\Clients\AbstractClient;
@@ -8,11 +10,14 @@ use Apiz\Http\Request;
 use Apiz\Http\Response;
 use Apiz\Traits\Hookable;
 use Exception;
+use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 use Apiz\Exceptions\InvalidResponseClassException;
 
 /**
  * Class AbstractApi
+ * @template Resp
  * @package Apiz
  */
 abstract class AbstractApi
@@ -24,14 +29,14 @@ abstract class AbstractApi
      *
      * @var array
      */
-    protected $httpExceptions = [];
+    protected array $httpExceptions = [];
 
     /**
      * skip exception when its value true
      *
      * @var bool
      */
-    protected $shouldSkipHttpException = false;
+    protected bool $shouldSkipHttpException = false;
 
     /**
      * this variable contains request details
@@ -42,21 +47,20 @@ abstract class AbstractApi
 
     /**
      * response class name
-     *
-     * @var string
+     * @var class-string<Resp> $response
      */
     protected $response = Response::class;
 
     /**
      * @var array
      */
-    protected $config = [];
+    protected array $config = [];
 
     /**
      * AbstractApi constructor.
-     * @param Request|null $request
+     * @param ?Request $request
      */
-    public function __construct(Request $request = null)
+    public function __construct($request = null)
     {
         if (!$request || !$request->hasClient()) {
             $this->request = new Request(new GuzzleClient($this->config));
@@ -69,14 +73,14 @@ abstract class AbstractApi
     /**
      * @return string
      */
-    abstract protected function getBaseURL();
+    abstract protected function getBaseURL(): string;
 
     /**
      * Get client configs
      *
      * @return array
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         return $this->config;
     }
@@ -105,7 +109,7 @@ abstract class AbstractApi
      *
      * @param string $url
      */
-    protected function setBaseURL($url)
+    protected function setBaseURL(string $url)
     {
         $this->request->setBaseURL($url);
     }
@@ -113,7 +117,7 @@ abstract class AbstractApi
     /**
      * @return string
      */
-    public function getPrefix()
+    public function getPrefix(): string
     {
         return '';
     }
@@ -123,7 +127,7 @@ abstract class AbstractApi
      *
      * @param string $prefix
      */
-    protected function setPrefix($prefix)
+    protected function setPrefix(string $prefix)
     {
         $this->request->setPrefix($prefix);
     }
@@ -139,7 +143,7 @@ abstract class AbstractApi
     /**
      * @param Request $request
      * @param ResponseInterface $response
-     * @return Response
+     * @return Resp
      * @throws InvalidResponseClassException
      */
     private function makeResponse(Request $request, ResponseInterface $response)
@@ -170,7 +174,9 @@ abstract class AbstractApi
      */
     protected function withFormParams(array $params = [])
     {
-        $this->request->setParameters($params, 'form_params');
+        $this->request->setContentType('application/x-www-form-urlencoded');
+        $body = urlencode(http_build_query($params));
+        $this->request->setBodyContents($body);
 
         return $this;
     }
@@ -178,12 +184,12 @@ abstract class AbstractApi
     /**
      * set request headers
      *
-     * @param array $params
-     * @return AbstractApi|bool
+     * @param array $headers
+     * @return AbstractApi
      */
-    protected function withHeaders(array $params = [])
+    protected function withHeaders(array $headers = []): self
     {
-        $this->request->setParameters($params, 'headers');
+        $this->request->setHeaders($headers);
 
         return $this;
     }
@@ -193,7 +199,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function getDefaultHeaders()
+    protected function getDefaultHeaders(): array
     {
         return [];
     }
@@ -203,7 +209,7 @@ abstract class AbstractApi
      *
      * @return array
      */
-    protected function getDefaultQueries()
+    protected function getDefaultQueries(): array
     {
         return [];
     }
@@ -212,7 +218,7 @@ abstract class AbstractApi
      * @param bool $action
      * @return self
      */
-    protected function skipDefaultHeaders($action = true)
+    protected function skipDefaultHeaders(bool $action = true): self
     {
         $this->request->skipDefaultHeaders($action);
 
@@ -223,7 +229,7 @@ abstract class AbstractApi
      * @param bool $action
      * @return self
      */
-    protected function skipDefaultQueries($action = true)
+    protected function skipDefaultQueries(bool $action = true): self
     {
         $this->request->skipDefaultQueries($action);
 
@@ -235,11 +241,18 @@ abstract class AbstractApi
      * set query parameters
      *
      * @param array $params
-     * @return AbstractApi|bool
+     * @return AbstractApi
      */
-    protected function withQueryParams(array $params = [])
+    protected function withQueryParams(array $params = []): self
     {
-        $this->request->setParameters($params, 'query');
+        $this->request->setQueryParams($params);
+
+        return $this;
+    }
+
+    protected function withOptions(array $options = []): self
+    {
+        $this->request->setOptions($options);
 
         return $this;
     }
@@ -247,12 +260,16 @@ abstract class AbstractApi
     /**
      * Add allow redirects param
      *
-     * @param array $params
-     * @return AbstractApi|bool
+     * @param array|null $option
+     * @return AbstractApi
      */
-    protected function allowRedirects(array $params = [])
+    protected function allowRedirects(?array $option = []): self
     {
-        $this->request->setParameters($params, 'allow_redirects');
+        if (empty($option)) {
+            $option = true;
+        }
+
+        $this->request->setOption(RequestOptions::ALLOW_REDIRECTS, $option);
 
         return $this;
     }
@@ -262,18 +279,11 @@ abstract class AbstractApi
      *
      * @param string $username
      * @param string $password
-     * @param array $opts
      * @return AbstractApi
      */
-    protected function basicAuth($username, $password, array $opts = [])
+    protected function basicAuth(string $username, string $password): self
     {
-        $params = [$username, $password];
-
-        if (!empty($opts)) {
-            $params = array_merge($params, $opts);
-        }
-
-        $this->request->setParameters($params, 'auth');
+        $this->request->setHeader('Authorization', 'Basic ' . base64_encode("{$username}:{$password}"));
 
         return $this;
     }
@@ -281,20 +291,18 @@ abstract class AbstractApi
     /**
      * Set request body
      *
-     * @param string|array $contents
-     * @return AbstractApi|bool
+     * @param mixed $contents
+     * @return AbstractApi
      */
-    protected function withBody($contents)
+    protected function withBody($contents): self
     {
         if (is_array($contents)) {
-            $this->withHeaders([
-                'Content-Type'=>'application/json'
-            ]);
+            $this->request->setContentType('x-www-form-urlencoded');
 
-            $contents = json_encode($contents);
+            $contents = urlencode(http_build_query($contents));
         }
 
-        $this->request->setParameters($contents, 'body');
+        $this->request->setBodyContents($contents);
 
         return $this;
     }
@@ -303,11 +311,12 @@ abstract class AbstractApi
      * Set request param as JSON
      *
      * @param array $params
-     * @return AbstractApi|bool
+     * @return AbstractApi
      */
-    protected function withJson(array $params = [])
+    protected function withJson(array $params = []): self
     {
-        $this->request->setParameters($params, 'json');
+        $this->request->setHeader('Content-Type', 'application/json');
+        $this->request->setBodyContents(json_encode($params));
 
         return $this;
     }
@@ -321,10 +330,10 @@ abstract class AbstractApi
      * @param array $headers
      * @return AbstractApi
      */
-    protected function withFile($name, $file, $filename, array $headers = [])
+    protected function withFile(string $name, string $file, string $filename, array $headers = []): self
     {
         if (file_exists($file)) {
-            $contents = fopen($file, 'r');
+            $contents = Utils::tryFopen($file, 'r');
 
             return $this->attach($name, $contents, $filename, $headers);
         }
@@ -336,19 +345,19 @@ abstract class AbstractApi
      * Attach a raw content with request
      *
      * @param string $name
-     * @param string $contents
+     * @param mixed $contents
      * @param string $filename
      * @param array $headers
-     * @return AbstractApi
+     * @return self
      */
-    protected function attach($name, $contents, $filename, array $headers = [])
+    protected function attach(string $name, $contents, string $filename, array $headers = []): self
     {
-        $this->request->setParameters([
+        $this->request->setBodyMultipart([
             'name' => $name,
             'contents' => $contents,
             'filename' => $filename,
             'headers' => $headers
-        ], 'multipart');
+        ]);
 
         return $this;
     }
@@ -359,21 +368,38 @@ abstract class AbstractApi
      * @param array $data
      * @return AbstractApi
      */
-    protected function withFormData(array $data = [])
+    protected function withFormData(array $data = []): self
     {
-        $params = [];
-        foreach($data as $key => $value) {
-            $params[] = [
-                'name' => $key,
-                'contents' => $value
-            ];
-        }
+        $params = $this->prepareFormData($data);
 
         if (!empty($params)) {
-            $this->request->setParameters($params, 'multipart');
+            $this->request->setBodyParams($params);
         }
 
         return $this;
+    }
+
+    /**
+     * @param array $params
+     * @param string $prefix
+     * @return array
+     */
+    protected function prepareFormData(array $params, string $prefix = ''): array
+    {
+        $formParams = [];
+
+        foreach ($params as $key => $value) {
+            $newKey = empty($prefix) ? $key : $prefix . '[' . $key . ']';
+            if (is_array($value)) {
+                $formParams = array_merge($formParams, $this->prepareFormData($value, $newKey));
+            } else {
+                $formParams[] = [
+                    'name' => $newKey,
+                    'contents' => $value,
+                ];
+            }
+        }
+        return $formParams;
     }
 
     /**
@@ -382,7 +408,7 @@ abstract class AbstractApi
      * @param array $codes
      * @return AbstractApi
      */
-    protected function skipHttpExceptions(array $codes = [])
+    protected function skipHttpExceptions(array $codes = []): self
     {
         if (!empty($codes)) {
             $this->shouldSkipHttpException = true;
@@ -401,7 +427,7 @@ abstract class AbstractApi
      * @param array $exceptions
      * @return AbstractApi
      */
-    protected function pushHttpExceptions(array $exceptions = [])
+    protected function pushHttpExceptions(array $exceptions = []): self
     {
         foreach($exceptions as $code => $exception) {
             $this->httpExceptions[$code] = $exception;
@@ -411,71 +437,71 @@ abstract class AbstractApi
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function get($uri)
+    protected function get(string $uri)
     {
         return $this->makeMethodRequest('GET', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function post($uri)
+    protected function post(string $uri)
     {
         return $this->makeMethodRequest('POST', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function put($uri)
+    protected function put(string $uri)
     {
         return $this->makeMethodRequest('PUT', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function patch($uri)
+    protected function patch(string $uri)
     {
         return $this->makeMethodRequest('PATCH', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function delete($uri)
+    protected function delete(string $uri)
     {
         return $this->makeMethodRequest('DELETE', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function head($uri)
+    protected function head(string $uri)
     {
         return $this->makeMethodRequest('HEAD', $uri);
     }
 
     /**
-     * @param $uri
-     * @return Response
+     * @param string $uri
+     * @return Resp
      * @throws Exception
      */
-    protected function options($uri)
+    protected function options(string $uri)
     {
         return $this->makeMethodRequest('OPTIONS', $uri);
     }
@@ -485,10 +511,10 @@ abstract class AbstractApi
      *
      * @param string $method
      * @param string $uri
-     * @return Response
+     * @return Resp
      * @throws Exception
      */
-    private function makeMethodRequest($method, $uri)
+    private function makeMethodRequest(string $method, string $uri)
     {
         $response = null;
         try {
@@ -497,7 +523,7 @@ abstract class AbstractApi
 
             $request = $this->request->make($method, $uri);
             $this->executePreHooks($this->request);
-            $clientResponse = $this->request->sendByObject($request);
+            $clientResponse = $this->request->send($request);
             $response = $this->makeResponse($this->request, $clientResponse);
 
             if (!$this->shouldSkipHttpException) {

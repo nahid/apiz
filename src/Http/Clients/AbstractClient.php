@@ -22,24 +22,24 @@ abstract class AbstractClient
     /**
      * @return string
      */
-    protected abstract function getRequestClass();
+    protected abstract function getRequestClass(): string;
 
     /**
      * @return string
      */
-    protected abstract function getResponseClass();
+    protected abstract function getResponseClass(): string;
 
     /**
      * @return string
      */
-    protected abstract function getUriClass();
+    protected abstract function getUriClass(): string;
 
     /**
      * @param array $args
      * @return ResponseInterface
      * @throws Exception
      */
-    public abstract function send(...$args);
+    public abstract function send(...$args): ResponseInterface;
 
     /**
      * @param mixed ...$args

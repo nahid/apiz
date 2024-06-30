@@ -7,14 +7,16 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class GuzzleClient extends AbstractClient
 {
     /**
      * @inheritDoc
+     * @return string
      */
-    public function getRequestClass()
+    public function getRequestClass(): string
     {
         return Request::class;
     }
@@ -22,7 +24,7 @@ class GuzzleClient extends AbstractClient
     /**
      * @inheritDoc
      */
-    public function getResponseClass()
+    public function getResponseClass(): string
     {
         return Response::class;
     }
@@ -30,7 +32,7 @@ class GuzzleClient extends AbstractClient
     /**
      * @inheritDoc
      */
-    public function getUriClass()
+    public function getUriClass(): string
     {
         return Uri::class;
     }
@@ -40,7 +42,7 @@ class GuzzleClient extends AbstractClient
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    public function send(...$args)
+    public function send(...$args): ResponseInterface
     {
         $client = new Client($this->config);
 

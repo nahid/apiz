@@ -3,9 +3,11 @@
 namespace Apiz\Http;
 
 use Apiz\Http\Clients\AbstractClient;
+use Apiz\Http\Clients\GuzzleClient;
 use Exception;
 use Apiz\Exceptions\ClientNotDefinedException;
 use Apiz\Exceptions\InvalidResponseClassException;
+use GuzzleHttp\Psr7\MultipartStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -72,7 +74,19 @@ class Request
      *
      * @var array
      */
-    protected $parameters = [];
+    protected $body = [];
+
+    /**
+     * Query parameters
+     *
+     * @var array
+     */
+    protected $queryParams = [];
+
+    protected $headers = [];
+
+    protected $contentType = 'application/x-www-form-urlencoded';
+
     /**
      * @var RequestInterface
      */
@@ -80,16 +94,18 @@ class Request
 
     public function __construct(AbstractClient $client = null)
     {
-        if ($client) {
-            $this->setClient($client);
+        if (!$client) {
+            $client = new GuzzleClient();
         }
+
+        $this->setClient($client);
     }
 
     /**
      * @return AbstractClient
      * @throws ClientNotDefinedException
      */
-    public function getClient()
+    public function getClient(): AbstractClient
     {
         if (!$this->client) {
             throw new ClientNotDefinedException();
@@ -101,7 +117,7 @@ class Request
     /**
      * @param AbstractClient $client
      */
-    public function setClient(AbstractClient $client)
+    public function setClient(AbstractClient $client): void
     {
         $this->client = $client;
     }
@@ -109,11 +125,11 @@ class Request
     /**
      * check if client is set
      *
-     * @return string
+     * @return bool
      */
-    public function hasClient()
+    public function hasClient(): bool
     {
-        return $this->client;
+        return !!$this->client;
     }
 
     /**
@@ -121,7 +137,7 @@ class Request
      *
      * @return string
      */
-    public function getBaseURL()
+    public function getBaseURL(): string
     {
         return trim($this->baseUrl, '/');
     }
@@ -131,7 +147,7 @@ class Request
      *
      * @param string $url
      */
-    public function setBaseURL($url)
+    public function setBaseURL(string $url): void
     {
         $this->baseUrl = $url;
     }
@@ -141,7 +157,7 @@ class Request
      *
      * @return string
      */
-    public function getPrefix()
+    public function getPrefix(): string
     {
         return trim($this->prefix, '/');
     }
@@ -151,7 +167,7 @@ class Request
      *
      * @param string $prefix
      */
-    public function setPrefix($prefix)
+    public function setPrefix(string $prefix): void
     {
         $this->prefix = $prefix;
     }
@@ -161,7 +177,7 @@ class Request
      *
      * @return array
      */
-    protected function getDefaultHeaders()
+    protected function getDefaultHeaders(): array
     {
         return $this->defaultHeaders;
     }
@@ -171,7 +187,7 @@ class Request
      *
      * @param array $headers
      */
-    public function setDefaultHeaders($headers)
+    public function setDefaultHeaders(array $headers): void
     {
         $this->defaultHeaders = $headers;
     }
@@ -181,7 +197,7 @@ class Request
      *
      * @return array
      */
-    protected function getDefaultQueries()
+    protected function getDefaultQueries(): array
     {
         return $this->defaultQueries;
     }
@@ -191,7 +207,7 @@ class Request
      *
      * @param array $queries
      */
-    public function setDefaultQueries($queries)
+    public function setDefaultQueries(array $queries): void
     {
         $this->defaultQueries = $queries;
     }
@@ -199,7 +215,7 @@ class Request
     /**
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
@@ -207,42 +223,67 @@ class Request
     /**
      * @param array $options
      */
-    public function setOptions($options)
+    public function setOptions(array $options): void
     {
         $this->options = $options;
     }
 
     /**
-     * @param string|null $key
-     * @return array
+     * @param string $name
+     * @param mixed $option
      */
-    public function getParameters($key = null)
+    public function setOption(string $name, $option): void
     {
-        if ($key) {
-            return $this->parameters[$key];
-        }
-
-        return $this->parameters;
+        $this->options[$name] = $option;
     }
 
     /**
-     * @param array|string $parameters
-     * @param string $key
+     * @return mixed
      */
-    public function setParameters($parameters, $key = null)
+    public function getBodyContents()
     {
-        if ($key) {
-            $this->parameters[$key] = $parameters;
-        } else {
-            $this->parameters = $parameters;
+        return $this->body;
+    }
+
+    /**
+     * @param array $contents
+     * @param ?string $key
+     */
+    public function setBodyContents($contents): void
+    {
+        $this->body = $contents;
+    }
+
+    public function setBodyParam(string $key, $value): void
+    {
+        if (!is_array($this->body)) {
+            $this->body = [];
         }
+
+        $this->body[$key] = $value;
+    }
+
+    public function setBodyParams(array $params): void
+    {
+        $this->body = $params;
+    }
+
+    public function setBodyMultipart(array $value): void
+    {
+        $this->setContentType('multipart/form-data');
+
+        if (!is_array($this->body)) {
+            $this->body = [];
+        }
+
+        $this->body[] = $value;
     }
 
     /**
      * @param bool $action
      * @return Request
      */
-    public function skipDefaultHeaders($action = true)
+    public function skipDefaultHeaders(bool $action = true): self
     {
         $this->shouldSkipDefaultHeader = $action;
 
@@ -253,45 +294,106 @@ class Request
      * @param bool $action
      * @return Request
      */
-    public function skipDefaultQueries($action = true)
+    public function skipDefaultQueries(bool $action = true): self
     {
         $this->shouldSkipDefaultQueries = $action;
 
         return $this;
     }
 
-    protected function mergeDefaultHeaders()
+    public function setContentType(string $type): void
+    {
+        $this->contentType = $type;
+
+        if ($type == 'multipart/form-data') {
+            return;
+        }
+
+        $this->setHeader('Content-Type', $type);
+    }
+
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    public function getHeader(string $key): ?string
+    {
+        return $this->headers[$key] ?? null;
+    }
+
+    public function setHeaders(array $headers): void
+    {
+        $this->headers = $headers;
+    }
+
+    public function setHeader(string $key, string $value): void
+    {
+        $this->headers[$key] = $value;
+    }
+
+    public function hasHeader(string $key): bool
+    {
+        return isset($this->headers[$key]);
+    }
+
+    public function getQueryParams(): array
+    {
+        return $this->queryParams;
+    }
+
+    public function getQueryParam(string $key): ?string
+    {
+        return $this->queryParams[$key] ?? null;
+    }
+
+    public function setQueryParams(array $queryParams): void
+    {
+        $this->queryParams = $queryParams;
+    }
+
+    public function setQueryParam(string $key, string $value): void
+    {
+        $this->queryParams[$key] = $value;
+    }
+
+    public function hasQueryParam(string $key): bool
+    {
+        return isset($this->queryParams[$key]);
+    }
+
+    protected function mergeDefaultHeaders(): void
     {
         if (!$this->shouldSkipDefaultHeader) {
-            if (isset($this->parameters['headers'])) {
-                $this->parameters['headers'] = array_merge(
+            if (isset($this->body['headers'])) {
+                $this->body['headers'] = array_merge(
                     $this->defaultHeaders,
-                    $this->parameters['headers']
+                    $this->body['headers']
                 );
             } else {
-                $this->parameters['headers'] = $this->defaultHeaders;
+                $this->body['headers'] = $this->defaultHeaders;
             }
 
-            if (count($this->parameters['headers']) < 1) {
-                unset($this->parameters['headers']);
+            if (count($this->body['headers']) < 1) {
+                unset($this->body['headers']);
             }
         }
     }
 
-    protected function mergeDefaultQueries()
+    protected function mergeDefaultQueries(): void
     {
         if (!$this->shouldSkipDefaultQueries) {
-            if (isset($this->parameters['query'])) {
-                $this->parameters['query'] = array_merge(
+            if (isset($this->body['query'])) {
+                $this->body['query'] = array_merge(
                     $this->defaultQueries,
-                    $this->parameters['query']
+                    $this->body['query']
                 );
             } else {
-                $this->parameters['query'] = $this->defaultQueries;
+                $this->body['query'] = $this->defaultQueries;
             }
 
-            if (count($this->parameters['query']) < 1) {
-                unset($this->parameters['query']);
+            if (count($this->body['query']) < 1) {
+                unset($this->body['query']);
             }
         }
     }
@@ -302,36 +404,28 @@ class Request
      * @return RequestInterface
      * @throws ClientNotDefinedException
      */
-    public function make($method, $uri)
+    public function make(string $method, string $uri): RequestInterface
     {
         $this->mergeDefaultHeaders();
         $this->mergeDefaultQueries();
 
         $fullPath = $this->getFullRequestPath($uri);
-
         $uriObject = $this->getClient()->getUri($fullPath);
 
-        $this->psrRequest = $this->getClient()->getRequest($method, $uriObject);
+        $body = $this->getBodyContents();
+
+        if (is_array($body) && $this->contentType == 'multipart/form-data') {
+            $body = new MultipartStream($body);
+        }
+
+        $this->psrRequest = $this->getClient()->getRequest($method, $uriObject, $this->getHeaders(), $body);
 
         return $this->psrRequest;
     }
 
-    public function getPsrRequest()
+    public function getPsrRequest(): RequestInterface
     {
         return $this->psrRequest;
-    }
-
-    /**
-     * @param string $method
-     * @param string $uri
-     * @return ResponseInterface
-     * @throws Exception
-     */
-    public function send($method, $uri)
-    {
-        $request = $this->make($method, $uri);
-
-        return $this->sendByObject($request);
     }
 
     /**
@@ -340,9 +434,9 @@ class Request
      * @throws ClientNotDefinedException
      * @throws InvalidResponseClassException
      */
-    public function sendByObject($request)
+    public function send(RequestInterface $request): ResponseInterface
     {
-        $response = $this->getClient()->send($request, $this->getParameters());
+        $response = $this->getClient()->send($request, $this->getOptions());
 
         if (!$this->getClient()->isValidResponse($response)) {
             throw new InvalidResponseClassException();
@@ -355,7 +449,7 @@ class Request
      * @param string $uri
      * @return string
      */
-    public function getFullRequestPath($uri)
+    public function getFullRequestPath(string  $uri): string
     {
         $uri = trim($uri, '/');
         $prefix = $this->getPrefix();
@@ -365,14 +459,23 @@ class Request
             $uri = "{$prefix}/{$uri}";
         }
 
-        return "{$baseUrl}/{$uri}";
+        $params = '';
+
+        if (!empty($this->queryParams)) {
+            $params = '?' . http_build_query($this->queryParams);
+        }
+
+        return "{$baseUrl}/{$uri}{$params}";
     }
 
-    public function reset()
+    public function reset(): void
     {
         $this->shouldSkipDefaultHeader = false;
         $this->shouldSkipDefaultQueries = false;
         $this->options = [];
-        $this->parameters = [];
+        $this->body = [];
+        $this->queryParams = [];
+        $this->headers = [];
+        $this->contentType = 'application/x-www-form-urlencoded';
     }
 }
