@@ -364,38 +364,26 @@ class Request
 
     protected function mergeDefaultHeaders(): void
     {
-        if (!$this->shouldSkipDefaultHeader) {
-            if (isset($this->body['headers'])) {
-                $this->body['headers'] = array_merge(
-                    $this->defaultHeaders,
-                    $this->body['headers']
-                );
-            } else {
-                $this->body['headers'] = $this->defaultHeaders;
-            }
-
-            if (count($this->body['headers']) < 1) {
-                unset($this->body['headers']);
-            }
+        if ($this->shouldSkipDefaultHeader) {
+            return;
         }
+
+        $this->setHeaders(array_merge(
+            $this->defaultHeaders,
+            $this->getHeaders()
+        ));
     }
 
     protected function mergeDefaultQueries(): void
     {
-        if (!$this->shouldSkipDefaultQueries) {
-            if (isset($this->body['query'])) {
-                $this->body['query'] = array_merge(
-                    $this->defaultQueries,
-                    $this->body['query']
-                );
-            } else {
-                $this->body['query'] = $this->defaultQueries;
-            }
-
-            if (count($this->body['query']) < 1) {
-                unset($this->body['query']);
-            }
+        if ($this->shouldSkipDefaultQueries) {
+            return;
         }
+
+        $this->setQueryParams(array_merge(
+            $this->defaultQueries,
+            $this->getQueryParams()
+        ));
     }
 
     /**
