@@ -2,6 +2,7 @@
 
 namespace Apiz\Http;
 
+use Apiz\GraphQL\AbstractRequest;
 use Apiz\Http\Clients\AbstractClient;
 use Apiz\Http\Clients\GuzzleClient;
 use Exception;
@@ -246,8 +247,8 @@ class Request
     }
 
     /**
-     * @param array $contents
-     * @param ?string $key
+     * @param mixed $contents
+     * @return  void
      */
     public function setBodyContents($contents): void
     {
@@ -404,6 +405,14 @@ class Request
 
         if (is_array($body) && $this->contentType == 'multipart/form-data') {
             $body = new MultipartStream($body);
+        }
+
+        if (is_array($body)) {
+            $body = urlencode(http_build_query($body));
+        }
+
+        if (strtoupper($method) === 'GET') {
+            $body = '';
         }
 
         $this->psrRequest = $this->getClient()->getRequest($method, $uriObject, $this->getHeaders(), $body);

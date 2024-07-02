@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Apiz;
 
+use Apiz\GraphQL\AbstractRequest;
 use Apiz\Http\Clients\AbstractClient;
 use Apiz\Http\Clients\GuzzleClient;
 use Apiz\Http\Request;
@@ -504,6 +505,19 @@ abstract class AbstractApi
     protected function options(string $uri)
     {
         return $this->makeMethodRequest('OPTIONS', $uri);
+    }
+
+
+    protected function graphqlCall(AbstractRequest $request)
+    {
+        return $this->graphql('', $request);
+    }
+
+    protected function graphql(string $uri, AbstractRequest $request)
+    {
+        return $this
+            ->withJson($request->getQuery())
+            ->post($uri);
     }
 
     /**

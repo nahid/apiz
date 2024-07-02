@@ -2,7 +2,7 @@
 
 namespace Apiz\Constants;
 
-class MimeType
+interface MimeType
 {
     const APPLICATION_JSON = 'application/json';
     const TEXT_JSON = 'text/json';
