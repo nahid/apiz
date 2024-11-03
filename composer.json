@@ -6,7 +6,7 @@
         "php": ">=7.4",
         "ext-json": "*",
         "lib-libxml" : ">=2.6.20",
-        "nahid/qarray": "^2.0",
+        "nahid/qarray": ">=2.0",
         "guzzlehttp/guzzle": "^6.0 | ^7.0"
     },
     "require-dev": {
