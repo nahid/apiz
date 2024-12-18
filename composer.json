@@ -39,7 +39,7 @@
       "files": [
       ]
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "autoload-dev": {
         "psr-4": {
             "Api\\" : "api/"
